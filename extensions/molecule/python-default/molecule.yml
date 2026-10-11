@@ -1,3 +1,10 @@
 ---
 # Settings are in .config/molecule/config.yml
-{}
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      # bobbyrenwick.pip uses a string as a conditional (`when: pip_version`),
+      # which ansible-core >= 2.19 rejects. Remove when source builds leave the
+      # collection (Phase 2).
+      allow_broken_conditionals: true

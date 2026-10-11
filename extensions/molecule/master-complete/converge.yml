@@ -9,6 +9,8 @@
     waco_flatpak_apps:
       - org.musicbrainz.Picard
     waco_has_docker: true
+    # The test containers can't run the Docker daemon
+    start_service: false
     waco_has_dropbox: true
     waco_has_grsync: true
     waco_has_maven: true
