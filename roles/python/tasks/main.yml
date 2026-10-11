@@ -1,0 +1,124 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2025.
+
+- name: Create the Python installation group
+  ansible.builtin.group:
+    name: "{{ wapy_group }}"
+  become: true
+
+- name: Create the Python installation owner
+  ansible.builtin.user:
+    name: "{{ wapy_user }}"
+    group: "{{ wapy_group }}"
+  become: true
+
+- name: Install GnuPG 2 (EL 10)
+  ansible.builtin.dnf:
+    name:
+      - gnupg2
+    state: present
+  become: true
+  when: wapy_platform in ('EL10')
+
+- name: Enable the EPEL repository
+  ansible.builtin.include_role:
+    name: geerlingguy.repo-epel
+  when: wapy_platform in ('EL10', 'EL9', 'EL8')
+
+- name: Check if the Code Ready Linux Builder repository is installed (EL 10, EL 9)
+  ansible.builtin.command: "crb status"
+  become: true
+  register: crb
+  changed_when: false
+  when: wapy_platform in ('EL10', 'EL9')
+
+- name: Enable the Code Ready Linux Builder repository (EL 10, EL 9)
+  ansible.builtin.command: "crb enable"
+  become: true
+  when: wapy_platform in ('EL10', 'EL9') and 'disabled' in crb.stdout
+
+- name: Install system Python
+  ansible.builtin.dnf:
+    name:
+      - python3
+    state: present
+  become: true
+  when: ansible_os_family == 'RedHat'
+
+- name: Install system Python (Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - python3
+    state: present
+  become: true
+  when: wapy_platform == 'Ubuntu'
+
+- name: "Install system Python dependencies (EL 10, EL 9, EL 8, Fedora)"
+  ansible.builtin.dnf:
+    name: "{{ wapy_system_python_deps }}"
+    state: present
+  become: true
+  when: wapy_platform in ('EL10', 'EL9', 'EL8', 'Fedora')
+
+- name: "Install system Python dependencies (Ubuntu)"
+  ansible.builtin.apt:
+    name: "{{ wapy_system_python_deps }}"
+    state: present
+  become: true
+  when: wapy_platform == 'Ubuntu'
+
+- name: "Create root directory for default virtualenv's"
+  ansible.builtin.file:
+    dest: "{{ wapy_source_venv_root_dir }}"
+    state: directory
+    mode: 0755
+  become: true
+
+- name: Install source Python
+  ansible.builtin.include_tasks:
+    file: source-python.yml
+  vars:
+    python_release: "{{ item }}"
+    python_minor: "{{ python_release.split('.')[0] }}.{{ python_release.split('.')[1] }}"
+    python_path: "{{ wapy_source_python_root }}/Python-{{ python_minor }}/bin"
+  loop: "{{ wapy_source_versions }}"
+
+- name: "Register most recent source virtualenv tools"
+  ansible.builtin.set_fact:
+    newest_virtualenv_dir: "{{ wapy_source_venv_root_dir }}/{{ wapy_source_venv_prefix }}-{{
+    newest_python_minor }}"
+    newest_virtualenv_command: "{{ wapy_install_root_dir }}/Python-{{
+    newest_python_minor }}/bin/virtualenv"
+    newest_virtualenv_python: "{{ wapy_install_root_dir }}/Python-{{
+    newest_python_minor }}/bin/python{{ newest_python_minor }}"
+  when: newest_python_release is defined
+
+- name: "Register most recent system virtualenv tools"
+  ansible.builtin.set_fact:
+    newest_virtualenv_dir: "{{ wapy_system_venv_root_dir }}/{{ wapy_system_venv_prefix }}-{{
+    wapy_system_newest_minor }}"
+    newest_virtualenv_command: "/usr/bin/virtualenv{{
+    (wapy_platform != 'EL') | ternary('', '-' + wapy_system_newest_minor) }}"
+    newest_virtualenv_python: "/usr/bin/python{{ wapy_system_newest_minor }}"
+  when: newest_python_release is not defined
+
+- name: Install Ansible and Mercurial (RedHat)
+  ansible.builtin.include_tasks:
+    file: "redhat/ansible_mercurial.yml"
+  when: ansible_os_family == "RedHat" and ( wapy_has_ansible or wapy_has_mercurial )
+
+- name: Install Ansible and Mercurial (Ubuntu)
+  ansible.builtin.include_tasks:
+    file: "ubuntu/ansible_mercurial.yml"
+  when: ansible_distribution == "Ubuntu" and ( wapy_has_ansible or wapy_has_mercurial )
+
+- name: Install Sphinx in a virtualenv
+  ansible.builtin.pip:
+    name: "{{ wapy_sphinx_packages }}"
+    virtualenv: "{{ newest_virtualenv_dir }}/{{ wapy_sphinx_venv }}"
+    virtualenv_command: "{{ newest_virtualenv_command }}"
+    virtualenv_python: "{{ newest_virtualenv_python }}"
+  become: true
+  become_user: "{{ wapy_user }}"
+  when: wapy_has_sphinx

@@ -1,0 +1,26 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+namespace: waco_org
+name: waco
+version: 0.1.0
+readme: README.md
+authors:
+  - Nicola Musatti <https://github.com/nmusatti>
+description: Workstation as Code - provision developer workstations with Ansible
+license:
+  - GPL-3.0-or-later
+tags:
+  - workstation
+  - developer
+  - linux
+dependencies:
+  community.general: ">=9.0.0"
+repository: https://github.com/waco-org/waco
+issues: https://github.com/waco-org/waco/issues
+build_ignore:
+  - .venv
+  - .cache
+  - .github
+  - "*.tar.gz"

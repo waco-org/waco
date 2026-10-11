@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# molecule-matrix - run Molecule scenarios on several distributions.
+#
+# Usage: scripts/molecule-matrix [-d distro]... [-s scenario]... [-j jobs] [-c command]
+#
+#   -d  distribution to test (default: all in extensions/molecule/distros)
+#   -s  scenario to run (default: all in extensions/molecule)
+#   -j  number of runs in parallel (default: 2)
+#   -c  Molecule command (default: test)
+#
+# Ansible's home is .cache/ansible, so roles and collections needed by the tests
+# don't end up in ~/.ansible, and this collection is linked there rather than
+# copied, so that changes are picked up immediately. Each run gets its own
+# ephemeral directory, so runs don't interfere with each other. Logs go to
+# .cache/molecule-logs/<scenario>.<distro>.log and a summary is printed at the end. Exits with a non-zero status if any run failed.
+
+set -euo pipefail
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+mol="$root/extensions/molecule"
+logs="$root/.cache/molecule-logs"
+
+distros=()
+scenarios=()
+jobs=2
+command=test
+
+while getopts "d:s:j:c:h" opt; do
+    case $opt in
+        d) distros+=("$OPTARG") ;;
+        s) scenarios+=("$OPTARG") ;;
+        j) jobs=$OPTARG ;;
+        c) command=$OPTARG ;;
+        *) sed -n '6,17p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+    esac
+done
+
+if [[ ${#distros[@]} -eq 0 ]]; then
+    mapfile -t distros < <(grep -v '^\s*\(#\|$\)' "$mol/distros")
+fi
+if [[ ${#scenarios[@]} -eq 0 ]]; then
+    mapfile -t scenarios < <(cd "$mol" && ls -d */ | tr -d /)
+fi
+
+mkdir -p "$logs"
+
+# Isolate Ansible's home and link this collection into it, which also stops
+# Molecule's prerun from reinstalling it concurrently.
+export ANSIBLE_HOME="$root/.cache/ansible"
+link="$ANSIBLE_HOME/collections/ansible_collections/waco_org/waco"
+mkdir -p "$(dirname "$link")"
+[[ -L $link ]] || ln -s "$root" "$link"
+# Install the requirements once, before the parallel runs.
+ansible-galaxy role install -r "$root/requirements.yml" -p "$ANSIBLE_HOME/roles" >/dev/null
+ansible-galaxy collection install -r "$root/requirements.yml" -p "$ANSIBLE_HOME/collections" >/dev/null
+
+run_one() {
+    local scenario=$1 distro=$2
+    local log="$logs/$scenario.$distro.log"
+    local start=$SECONDS
+    if MOLECULE_DISTRO=$distro \
+       MOLECULE_EPHEMERAL_DIRECTORY="$root/.cache/molecule-tmp/$scenario.$distro" \
+       NO_COLOR=1 PY_COLORS=0 ANSIBLE_FORCE_COLOR=0 \
+       molecule "$command" -s "$scenario" </dev/null >"$log" 2>&1; then
+        printf '%-6s %-20s %-16s %5ss\n' PASS "$scenario" "$distro" $((SECONDS - start))
+    else
+        printf '%-6s %-20s %-16s %5ss  %s\n' FAIL "$scenario" "$distro" $((SECONDS - start)) "$log"
+    fi
+}
+export -f run_one
+export root logs command
+
+cd "$root"
+for s in "${scenarios[@]}"; do
+    for d in "${distros[@]}"; do
+        echo "$s $d"
+    done
+done | xargs -P "$jobs" -L 1 bash -c 'run_one "$0" "$1"' | tee "$logs/summary.txt"
+
+! grep -q '^FAIL' "$logs/summary.txt"

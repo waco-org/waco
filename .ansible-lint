@@ -1,0 +1,12 @@
+---
+# Workstation as Code
+exclude_paths:
+  - .cache/
+  - .venv/
+# The roles are still the ones imported from waco-master and waco-python;
+# lint findings are reported but don't fail the build until they are fixed
+# during the restructuring.
+warn_list:
+  - role-name
+  - no-handler
+  - args[module]

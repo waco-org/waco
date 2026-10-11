@@ -1,0 +1,86 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2025.
+
+- name: "Install the required packages (EL10, EL 9, EL 8, Fedora)"
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - yum-utils
+  become: true
+  when: waco_platform in ('EL10', 'EL9', 'EL8', 'Fedora')
+
+- name: Check if the official VirtualBox repository is available
+  ansible.builtin.stat:
+    path: /etc/yum.repos.d/virtualbox.repo
+  register: wavb_repo
+
+- name: Install the official VirtualBox repository
+  ansible.builtin.command: "yum-config-manager --add-repo https://download.virtualbox.org/virtualbox/rpm/{{ wavb_distro }}/virtualbox.repo"
+  become: true
+  when: ansible_os_family == 'RedHat' and wavb_repo.stat.exists is defined and not wavb_repo.stat.exists
+
+- name: "Install VirtualBox (EL10, EL 9, EL 8, Fedora)"
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - "VirtualBox-{{ wavb_version }}"
+  become: true
+  when: waco_platform in ('EL10', 'EL9', 'EL8', 'Fedora')
+  register: wavb_installed
+
+# - name: Disable the official VirtualBox repository
+#   ansible.builtin.command: "yum-config-manager --disable virtualbox.repo"
+#   become: true
+#   when: ansible_os_family == 'RedHat' and wavb_installed is changed and wavb_disable_repo
+
+- name: Install the required packages (Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+  become: true
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Check if the official VirtualBox apt repository is available (Ubuntu)
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/virtualbox.list
+  register: virtualbox_repo
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Install the official VirtualBox GPG key (Ubuntu)
+  ansible.builtin.apt_key:
+    url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+    state: present
+  when: ansible_distribution == 'Ubuntu' and virtualbox_repo.stat.exists is defined and not virtualbox_repo.stat.exists
+
+- name: Retrieve package architecture
+  ansible.builtin.command: "dpkg --print-architecture"
+  register: dpkg_architecture
+  when: ansible_distribution == 'Ubuntu' and virtualbox_repo.stat.exists is defined and not virtualbox_repo.stat.exists
+
+- name: Retrieve LSB release (Ubuntu)
+  ansible.builtin.command: "lsb_release -cs"
+  register: lsb_release
+  when: ansible_distribution == 'Ubuntu' and virtualbox_repo.stat.exists is defined and not virtualbox_repo.stat.exists
+
+- name: Install the official VirtualBox repository (Ubuntu)
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ dpkg_architecture.stdout }}] https://download.virtualbox.org/virtualbox/debian {{ lsb_release.stdout }} contrib"
+    filename: virtualbox
+  become: true
+  when: ansible_distribution == 'Ubuntu' and virtualbox_repo.stat.exists is defined and not virtualbox_repo.stat.exists
+
+- name: "Install VirtualBox (Ubuntu)"
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - "virtualbox-{{ wavb_version }}"
+  become: true
+  when: waco_platform == 'Ubuntu'
+  register: wavb_installed

@@ -1,0 +1,17 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: waco_org.waco.master
+  vars:
+    waco_has_dropbox: true
+    waco_has_grsync: true
+    waco_has_maven: true
+    waco_has_packer: true
+    waco_has_vagrant: true
+    waco_has_virtualbox: true
+    waco_has_vscode: true
+    waco_users: ["user"]
+    waco_user_settings:
+      user:
+        has_rust: true

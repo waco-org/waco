@@ -1,0 +1,32 @@
+{# Workstation as Code
+   Copyright Nicola Musatti 2026.
+
+   Test image template, rendered by Molecule's podman driver. The image name is
+   "waco-<distro>"; to support a new distribution add it to the map below. #}
+{% set distro = item.image | regex_replace('^waco-', '') %}
+{% set bases = {
+    'rockylinux10': 'quay.io/rockylinux/rockylinux:10',
+    'rockylinux9': 'quay.io/rockylinux/rockylinux:9',
+    'centos-stream10': 'quay.io/centos/centos:stream10',
+    'centos-stream9': 'quay.io/centos/centos:stream9',
+    'fedora44': 'registry.fedoraproject.org/fedora:44',
+    'fedora43': 'registry.fedoraproject.org/fedora:43',
+    'ubuntu2604': 'docker.io/library/ubuntu:26.04',
+    'ubuntu2404': 'docker.io/library/ubuntu:24.04',
+    'ubuntu2204': 'docker.io/library/ubuntu:22.04',
+} %}
+FROM {{ bases[distro] }}
+
+{% if distro.startswith('ubuntu') %}
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends acl ca-certificates python3 python3-apt sudo systemd systemd-sysv && \
+    apt-get clean
+# The package lists are kept, as on a freshly installed system.
+{% elif distro.startswith('fedora') %}
+RUN dnf -y install acl python3 python3-libdnf5 sudo systemd && dnf clean all
+{% else %}
+RUN dnf -y install acl python3 sudo systemd && dnf clean all
+{% endif %}
+
+CMD ["/sbin/init"]

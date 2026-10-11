@@ -1,0 +1,21 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2025.
+
+- name: "Install Vagrant (EL10, EL 9, EL 8, Fedora)"
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - vagrant
+  become: true
+  when: waco_platform in ('EL10', 'EL9', 'EL8', 'Fedora')
+  register: vagrant_installed
+
+- name: "Install Vagrant (Ubuntu)"
+  ansible.builtin.apt:
+    name:
+      - vagrant
+  become: true
+  when: ansible_distribution == 'Ubuntu'
+  register: vagrant_installed

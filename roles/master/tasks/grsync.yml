@@ -1,0 +1,24 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2025.
+
+- name: Enable the PowerTools repository (EL 8)
+  ansible.builtin.include_tasks:
+    file: powertools.yml
+  when: waco_platform == 'EL8'
+
+- name: Install grsync (EL10, EL 9, EL 8, Fedora)
+  ansible.builtin.dnf:
+    name:
+      - grsync
+    state: present
+  become: true
+  when: waco_platform in ('EL10', 'EL9', 'EL8', 'Fedora')
+
+- name: Install grsync (Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - grsync
+    state: present
+  become: true
+  when: waco_platform == 'Ubuntu'

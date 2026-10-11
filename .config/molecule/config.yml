@@ -1,0 +1,38 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Base configuration shared by all the scenarios in extensions/molecule.
+# The target distribution is selected with the MOLECULE_DISTRO environment variable;
+# see extensions/molecule/Dockerfile.j2 for the supported values.
+
+dependency:
+  name: galaxy
+  enabled: false  # requirements.yml is installed by Molecule's prerun
+
+driver:
+  name: podman
+
+platforms:
+  - name: waco-${MOLECULE_SCENARIO_NAME}-${MOLECULE_DISTRO:-rockylinux10}
+    image: waco-${MOLECULE_DISTRO:-rockylinux10}
+    dockerfile: ../Dockerfile.j2
+    pre_build_image: false
+    systemd: always
+    command: /sbin/init
+
+provisioner:
+  name: ansible
+
+verifier:
+  name: testinfra
+
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - converge
+    - idempotence
+    - verify
+    - destroy

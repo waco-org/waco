@@ -1,0 +1,59 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+wapy_has_ansible: false
+wapy_has_mercurial: false
+wapy_has_sphinx: false
+wapy_user: python
+wapy_group: "{{ wapy_user }}"
+wapy_source_versions:
+  - 3.14.2
+  # - 3.13.11
+  # - 3.12.12
+  # - 3.11.14
+  # - 3.10.19
+wapy_build_root_dir: "/sw"
+wapy_install_root_dir: "/opt"
+# wapy_pip_version: 24.3.1
+wapy_source_packages:
+  - ipython
+  - pip
+  - setuptools
+  - twine
+  - virtualenv
+  - wheel
+wapy_source_venv: "dev"
+wapy_source_venv_root_dir: "/opt"
+wapy_source_venv_prefix: "venv"
+wapy_source_venv_packages:
+  - lxml
+  - pip
+  - ply
+  - pytest
+  - setuptools
+  - six
+  - tox
+  - twine
+  - virtualenv
+  - wheel
+wapy_system_venv_root_dir: "/opt"
+wapy_system_venv_prefix: "sysvenv"
+wapy_ansible_venv: "ansible"
+wapy_ansible_packages:
+  - ansible
+  - ansible-lint
+  - flake8
+  - molecule
+  - molecule-plugins[docker]
+  - pytest
+  - selinux
+  - pytest-testinfra
+  - yamllint
+wapy_sphinx_venv: "doc"
+wapy_sphinx_packages:
+  - hieroglyph
+  - rst2pdf
+  - sphinx
+  - sphinx-intl
+  - sphinx-rtd-theme

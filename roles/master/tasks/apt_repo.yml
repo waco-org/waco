@@ -1,0 +1,36 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2022 - 2023.
+
+# Ubuntu only
+
+- name: Install the required packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+  become: true
+
+- name: Check if the apt repository is available
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/{{ apt_repo_filename }}.list
+  register: repo_file
+
+- name: Install the apt repository's GPG key
+  ansible.builtin.apt_key:
+    url: "{{ apt_key_url }}"
+    keyring: "{{ apt_key_ring }}"
+    # keyserver: "{{ apt_key_server }}"
+    id: "{{ apt_key_id }}"
+    state: present
+  become: true
+  when: repo_file.stat.exists is defined and not repo_file.stat.exists
+
+- name: Install the apt repository
+  ansible.builtin.apt_repository:
+    repo: "{{ apt_repo_definition }}"
+    filename: "{{ apt_repo_filename }}"
+  become: true
+  when: repo_file.stat.exists is defined and not repo_file.stat.exists

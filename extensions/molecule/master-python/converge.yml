@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: waco_org.waco.master
+  vars:
+    waco_has_python: true
+    wapy_source_versions:
+      - 3.14.2

@@ -1,0 +1,12 @@
+# Workstation as Code
+# Distributions the tests run on, one per line. Each must be mapped to a base
+# image in Dockerfile.j2. Read by scripts/molecule-matrix and the CI workflow.
+rockylinux10
+rockylinux9
+fedora44
+fedora43
+ubuntu2604
+ubuntu2404
+ubuntu2204
+centos-stream10
+centos-stream9

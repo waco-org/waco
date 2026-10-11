@@ -1,0 +1,24 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2025.
+
+# EL 10, 9 & 8 only
+
+- name: Install dnf-manager command
+  ansible.builtin.dnf:
+    name:
+      - dnf-command(config-manager)
+  become: true
+
+- name: Check if the CodeReady Builder repository is enabled
+  ansible.builtin.command: "/usr/bin/crb status"
+  register: crb_enabled
+  check_mode: false
+  ignore_errors: true
+  changed_when: false
+  become: true
+
+- name: Enable the CodeReady Builder repository
+  ansible.builtin.command: "/usr/bin/crb enable"
+  become: true
+  when: crb_enabled.stdout.find('enabled') == - 1

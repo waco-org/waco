@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: waco_org.waco.master
+  vars:
+    waco_has_docker: true

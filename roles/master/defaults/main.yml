@@ -1,0 +1,108 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+
+# General settings
+
+# Flatpak applications to install
+waco_flatpak_apps: []
+
+# Base directory for application installations
+waco_install_dir: /opt
+
+# Software repository
+waco_software_dir: /sw
+
+# System packages to install
+# Note: these have to be valid across all required distro releases
+waco_packages: []
+
+
+# Docker
+
+# Whether to install Docker
+waco_has_docker: false
+
+# The owner of the Docker installation
+waco_docker_user: docker
+
+# The docker user's uid
+waco_docker_uid: 1000
+
+
+# Dropbox
+waco_has_dropbox: false
+
+
+# grsync
+waco_has_grsync: false
+
+# Apache Maven
+waco_has_maven: false
+wamvn_version: 3.9.12
+
+
+# Packer
+waco_has_packer: false
+
+# Set to true to disable the Hashicorp repository after installation, to prevent accidental
+# upgrades
+wapa_disable_repo: true
+
+
+# Python
+waco_has_python: false
+
+# The base directory for Python installations and virtualenv's
+wapy_install_root_dir: "{{ waco_install_dir }}"
+
+# The base directory for source installation virtualenv's
+wapy_source_venv_root_dir: "{{ waco_install_dir }}"
+
+# The base directory for system installation virtualenv's
+wapy_system_venv_root_dir: "{{ waco_install_dir }}"
+
+
+# Vagrant
+waco_has_vagrant: false
+
+# The required Vagrant release
+wava_version: 2.4.9
+
+
+# Virtualbox
+waco_has_virtualbox: false
+
+# The required VirtualBox major release
+wavb_release: 7.2
+
+# Explicitly specify the required package to install an earlier minor release
+wavb_package: ""
+
+
+# Set to true to disable the VirtualBox repository after installation, to prevent accidental
+# upgrades
+wavb_disable_repo: true
+
+
+# Visual Studio Code
+waco_has_vscode: false
+
+
+# User settings
+
+# A list of users that must be present on the system
+waco_users: []
+
+# A dictionary of user settings to override the default ones, e.g.:
+# waco_user_settings:
+#   user:
+#     has_rust: true
+#     flatpak_apps: []
+waco_user_settings: {}
+
+# Default user settings
+waco_user_defaults:
+  has_rust: false
+  flatpak_apps: []

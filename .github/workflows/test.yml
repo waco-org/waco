@@ -1,0 +1,59 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+name: test
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 7 1 * *"
+  workflow_dispatch:
+
+jobs:
+  matrix:
+    name: Build the test matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      distros: ${{ steps.matrix.outputs.distros }}
+      scenarios: ${{ steps.matrix.outputs.scenarios }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: matrix
+        run: |
+          echo "distros=$(grep -v '^\s*\(#\|$\)' extensions/molecule/distros | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+          echo "scenarios=$(cd extensions/molecule && ls -d */ | tr -d / | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: yamllint .
+      - run: ansible-lint
+
+  molecule:
+    needs: matrix
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(needs.matrix.outputs.distros) }}
+        scenario: ${{ fromJSON(needs.matrix.outputs.scenarios) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: scripts/molecule-matrix -d ${{ matrix.distro }} -s ${{ matrix.scenario }} -j 1
+      - if: failure()
+        run: cat .cache/molecule-logs/*.log
