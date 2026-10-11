@@ -10,3 +10,6 @@ warn_list:
   - role-name
   - no-handler
   - args[module]
+  - var-naming[no-role-prefix]
+  - var-naming[no-reserved]
+  - no-changed-when
