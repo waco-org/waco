@@ -20,6 +20,9 @@ platforms:
     pre_build_image: false
     systemd: always
     command: /sbin/init
+    # Flatpak runs bubblewrap, which needs nested namespaces and a fresh /proc.
+    # With rootless Podman this stays confined to the invoking user's namespace.
+    privileged: true
 
 provisioner:
   name: ansible
