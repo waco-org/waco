@@ -54,6 +54,10 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - run: pip install -r requirements-dev.txt
+      # The runner's AppArmor profile for unix_chkpwd also applies inside the
+      # containers. It lacks dac_override, which is needed to read the RH
+      # family's mode 0000 /etc/shadow, and that makes sudo fail on EL9.
+      - run: sudo apparmor_parser -R /etc/apparmor.d/unix-chkpwd
       - run: scripts/molecule-matrix -d ${{ matrix.distro }} -s ${{ matrix.scenario }} -j 1
       - if: failure()
         run: cat .cache/molecule-logs/*.log
