@@ -4,16 +4,34 @@
 
 name: test
 
+# To keep within the free plan's Actions minutes, the full Molecule matrix
+# (about 470 billed minutes) runs only on pull requests into main and when
+# started by hand. Every push gets lint only, and the monthly run is a smoke
+# test of master-default on every distro.
 on:
   push:
   pull_request:
+    branches: [main]
+    paths-ignore: ["**.md", "LICENSE"]
   schedule:
     - cron: "0 7 1 * *"
   workflow_dispatch:
+    inputs:
+      distros:
+        description: Space-separated distros (empty for all)
+        default: ""
+      scenarios:
+        description: Space-separated scenarios (empty for all)
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   matrix:
     name: Build the test matrix
+    if: github.event_name != 'push'
     runs-on: ubuntu-24.04
     outputs:
       distros: ${{ steps.matrix.outputs.distros }}
@@ -21,9 +39,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: matrix
+        env:
+          EVENT: ${{ github.event_name }}
+          IN_DISTROS: ${{ inputs.distros }}
+          IN_SCENARIOS: ${{ inputs.scenarios }}
         run: |
-          echo "distros=$(grep -v '^\s*\(#\|$\)' extensions/molecule/distros | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
-          echo "scenarios=$(cd extensions/molecule && ls -d */ | tr -d / | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+          distros=${IN_DISTROS:-$(grep -v '^\s*\(#\|$\)' extensions/molecule/distros)}
+          scenarios=${IN_SCENARIOS:-$(cd extensions/molecule && ls -d */ | tr -d /)}
+          if [ "$EVENT" = schedule ]; then scenarios=master-default; fi
+          echo "distros=$(printf '%s\n' $distros | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+          echo "scenarios=$(printf '%s\n' $scenarios | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
 
   lint:
     runs-on: ubuntu-24.04
