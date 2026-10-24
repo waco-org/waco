@@ -2,8 +2,8 @@
 
 An Ansible collection, `waco_org.waco`, to provision developer workstations.
 
-**Status:** work in progress, not yet released. See the
-[plan](https://github.com/waco-org/waco-docs/blob/main/review-and-plan.md).
+> **Work in progress: not ready for use.** The collection is being restructured and is not yet
+> released; roles, variables and behaviour may change without notice.
 
 ## Usage
 
