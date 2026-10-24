@@ -13,11 +13,17 @@
   register: rust_rustup
   become: true
 
+# The Red Hat family's curl-minimal also provides the command.
+- name: Check whether curl is installed
+  ansible.builtin.stat:
+    path: /usr/bin/curl
+  register: rust_curl
+
 - name: Install curl, which the rustup installer needs
   ansible.builtin.package:
     name: curl
   become: true
-  when: not rust_rustup.stat.exists
+  when: not rust_rustup.stat.exists and not rust_curl.stat.exists
 
 - name: Install Rust for {{ rust_user }}
   when: not rust_rustup.stat.exists
