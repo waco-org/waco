@@ -5,9 +5,11 @@
 name: test
 
 # To keep within the free plan's Actions minutes, the full Molecule matrix
-# (about 470 billed minutes) runs only on pull requests into main and when
-# started by hand. Every push gets lint only, and the monthly run is a smoke
-# test of workstation-default on every distro.
+# runs only on pull requests into main and when started by hand. Every push
+# gets lint only, and the monthly run is a smoke test of workstation-default on
+# every distro. There is one Molecule job per distro, which runs all of its
+# scenarios: per-job setup and rounding up to whole minutes are paid once per
+# distro rather than once per scenario, and the test image is built only once.
 on:
   push:
   pull_request:
@@ -48,7 +50,7 @@ jobs:
           scenarios=${IN_SCENARIOS:-$(cd extensions/molecule && ls -d */ | tr -d /)}
           if [ "$EVENT" = schedule ]; then scenarios=workstation-default; fi
           echo "distros=$(printf '%s\n' $distros | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
-          echo "scenarios=$(printf '%s\n' $scenarios | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+          echo "scenarios=$(echo $scenarios)" >> "$GITHUB_OUTPUT"
 
   lint:
     runs-on: ubuntu-24.04
@@ -64,13 +66,13 @@ jobs:
       - run: ansible-lint
 
   molecule:
+    name: molecule (${{ matrix.distro }})
     needs: matrix
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         distro: ${{ fromJSON(needs.matrix.outputs.distros) }}
-        scenario: ${{ fromJSON(needs.matrix.outputs.scenarios) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -83,6 +85,25 @@ jobs:
       # containers. It lacks dac_override, which is needed to read the RH
       # family's mode 0000 /etc/shadow, and that makes sudo fail on EL9.
       - run: sudo apparmor_parser -R /etc/apparmor.d/unix-chkpwd
-      - run: scripts/molecule-matrix -d ${{ matrix.distro }} -s ${{ matrix.scenario }} -j 1
+      # Two runs in parallel: most of the time goes on downloads, not CPU.
+      - env:
+          DISTRO: ${{ matrix.distro }}
+          SCENARIOS: ${{ needs.matrix.outputs.scenarios }}
+        run: scripts/molecule-matrix -d "$DISTRO" $(printf -- '-s %s ' $SCENARIOS) -j 2
+      - if: ${{ !cancelled() && hashFiles('.cache/molecule-logs/summary.txt') != '' }}
+        run: |
+          {
+            echo '```'
+            sort -k2 .cache/molecule-logs/summary.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      # Only the failed runs' logs, to keep the job log readable.
       - if: failure()
-        run: cat .cache/molecule-logs/*.log
+        run: |
+          grep '^FAIL' .cache/molecule-logs/summary.txt | awk '{print $NF}' | xargs -r cat
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: molecule-logs-${{ matrix.distro }}
+          path: .cache/molecule-logs/
+          retention-days: 7
