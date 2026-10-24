@@ -39,7 +39,7 @@ jobs:
       distros: ${{ steps.matrix.outputs.distros }}
       scenarios: ${{ steps.matrix.outputs.scenarios }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: matrix
         env:
           EVENT: ${{ github.event_name }}
@@ -55,8 +55,8 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -74,8 +74,8 @@ jobs:
       matrix:
         distro: ${{ fromJSON(needs.matrix.outputs.distros) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -102,7 +102,7 @@ jobs:
         run: |
           grep '^FAIL' .cache/molecule-logs/summary.txt | awk '{print $NF}' | xargs -r cat
       - if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: molecule-logs-${{ matrix.distro }}
           path: .cache/molecule-logs/
