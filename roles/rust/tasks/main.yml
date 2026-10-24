@@ -13,6 +13,12 @@
   register: rust_rustup
   become: true
 
+- name: Install curl, which the rustup installer needs
+  ansible.builtin.package:
+    name: curl
+  become: true
+  when: not rust_rustup.stat.exists
+
 - name: Install Rust for {{ rust_user }}
   when: not rust_rustup.stat.exists
   become: true

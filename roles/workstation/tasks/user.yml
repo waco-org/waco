@@ -30,4 +30,4 @@
     python_user: "{{ workstation_user }}"
     python_versions: "{{ workstation_settings.python_versions }}"
     python_tools: "{{ workstation_settings.python_tools }}"
-  when: waco_has_python and (workstation_settings.python_versions or workstation_settings.python_tools)
+  when: waco_has_python and (workstation_settings.python_versions + workstation_settings.python_tools) | length > 0
