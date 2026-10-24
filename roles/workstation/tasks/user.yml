@@ -1,0 +1,33 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+- name: Merge with the defaults the settings of {{ workstation_user }}
+  ansible.builtin.set_fact:
+    workstation_settings: "{{ waco_user_defaults | combine(waco_user_settings[workstation_user] | default({})) }}"
+
+- name: Install flatpak apps for {{ workstation_user }}
+  ansible.builtin.include_role:
+    name: waco_org.waco.flatpak
+    tasks_from: user
+  vars:
+    flatpak_user: "{{ workstation_user }}"
+    flatpak_apps: "{{ workstation_settings.flatpak_apps }}"
+  when: workstation_settings.flatpak_apps | length > 0
+
+- name: Install Rust for {{ workstation_user }}
+  ansible.builtin.include_role:
+    name: waco_org.waco.rust
+  vars:
+    rust_user: "{{ workstation_user }}"
+  when: workstation_settings.has_rust
+
+- name: Install Python versions and tools for {{ workstation_user }}
+  ansible.builtin.include_role:
+    name: waco_org.waco.python
+    tasks_from: user
+  vars:
+    python_user: "{{ workstation_user }}"
+    python_versions: "{{ workstation_settings.python_versions }}"
+    python_tools: "{{ workstation_settings.python_tools }}"
+  when: waco_has_python and (workstation_settings.python_versions or workstation_settings.python_tools)

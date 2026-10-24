@@ -1,0 +1,11 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+- name: Create the users
+  ansible.builtin.user:
+    name: "{{ item }}"
+    password: '*'
+    update_password: on_create
+  become: true
+  loop: "{{ users_list }}"

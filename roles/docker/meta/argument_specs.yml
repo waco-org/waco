@@ -1,0 +1,18 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install Docker CE and give users access to it
+    description:
+      - Docker itself is installed by the nmusatti.docker_ce role, whose variables (such as
+        start_service) are passed through.
+    options:
+      docker_users:
+        type: list
+        elements: str
+        default: []
+        description:
+          - Users added to the docker group. They must already exist.
+          - Membership of the docker group is equivalent to root access.

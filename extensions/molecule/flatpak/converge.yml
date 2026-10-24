@@ -1,0 +1,23 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Create the test user
+      ansible.builtin.user:
+        name: user
+
+    - name: Install a system-wide app
+      ansible.builtin.include_role:
+        name: waco_org.waco.flatpak
+      vars:
+        flatpak_apps:
+          - org.musicbrainz.Picard
+
+    - name: Install an app for the test user
+      ansible.builtin.include_role:
+        name: waco_org.waco.flatpak
+        tasks_from: user
+      vars:
+        flatpak_user: user
+        flatpak_apps:
+          - org.freac.freac

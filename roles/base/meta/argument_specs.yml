@@ -1,0 +1,11 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Repositories and prerequisites the other roles rely on
+    description:
+      - On EL, installs EPEL and enables the CodeReady Builder repository.
+      - On Ubuntu, installs what ansible.builtin.deb822_repository needs.
+    options: {}

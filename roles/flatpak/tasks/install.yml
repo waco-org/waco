@@ -1,0 +1,35 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+# Flatpak on Ubuntu is a Phase 6 decision (the natural source there is snap).
+- name: Warn that flatpak apps are skipped on this platform
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: flatpak is only supported on the Red Hat family;
+      skipped: {{ flatpak_apps | join(', ') }}
+  when: ansible_facts['os_family'] != 'RedHat' and flatpak_apps | length > 0
+
+- name: Install flatpak apps (Red Hat family)
+  when: ansible_facts['os_family'] == 'RedHat' and flatpak_apps | length > 0
+  block:
+    - name: Install flatpak
+      ansible.builtin.dnf:
+        name: flatpak
+      become: true
+
+    - name: Add the remote {{ flatpak_remote }}
+      community.general.flatpak_remote:
+        name: "{{ flatpak_remote }}"
+        flatpakrepo_url: "{{ flatpak_remote_url }}"
+        method: "{{ flatpak_method }}"
+      become: true
+      become_user: "{{ flatpak_owner }}"
+
+    - name: Install the apps
+      community.general.flatpak:
+        name: "{{ flatpak_apps }}"
+        remote: "{{ flatpak_remote }}"
+        method: "{{ flatpak_method }}"
+      become: true
+      become_user: "{{ flatpak_owner }}"

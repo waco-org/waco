@@ -1,0 +1,38 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install uv system-wide
+    description:
+      - Uses the distro's uv package where there is one, otherwise a pinned uv release from
+        GitHub, installed into /usr/local/bin.
+    options: &main_options
+      python_uv_version:
+        type: str
+        default: 0.13.5
+        description: The uv release installed where the distro has no uv package.
+  user:
+    short_description: Install Python versions and tools for one user, with uv
+    description:
+      - Needs uv, so the main entry point must have run first.
+    options:
+      <<: *main_options
+      python_user:
+        type: str
+        required: true
+        description: The user the versions and tools are installed for.
+      python_versions:
+        type: list
+        elements: str
+        default: []
+        description: Python versions to install with C(uv python install), e.g. "3.13".
+      python_tools:
+        type: list
+        elements: raw
+        default: []
+        description:
+          - Tools to install with C(uv tool install).
+          - Each one is a name, or a dictionary with a C(name) and a C(with) list of extra
+            packages, for example tox with tox-uv.

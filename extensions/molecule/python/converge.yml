@@ -1,0 +1,23 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Create the test user
+      ansible.builtin.user:
+        name: user
+
+    - name: Install uv
+      ansible.builtin.include_role:
+        name: waco_org.waco.python
+
+    - name: Install a Python version and tools for the test user
+      ansible.builtin.include_role:
+        name: waco_org.waco.python
+        tasks_from: user
+      vars:
+        python_user: user
+        python_versions: ["3.13"]
+        python_tools:
+          - name: tox
+            with: [tox-uv]
+          - ruff

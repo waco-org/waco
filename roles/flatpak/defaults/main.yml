@@ -1,0 +1,10 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# The remote the apps come from
+flatpak_remote: flathub
+flatpak_remote_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+
+# Apps to install: system-wide with the main entry point, for flatpak_user with the user one
+flatpak_apps: []

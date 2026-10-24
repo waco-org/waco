@@ -1,0 +1,29 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+- name: Install GnuPG 2
+  ansible.builtin.dnf:
+    name: gnupg2
+  become: true
+
+- name: Enable EPEL and the CodeReady Builder repository (EL)
+  when: ansible_facts['distribution'] != 'Fedora'
+  block:
+    - name: Install the EPEL release package
+      ansible.builtin.dnf:
+        name: epel-release
+      become: true
+
+    - name: Check whether the CodeReady Builder repository is enabled
+      ansible.builtin.command: /usr/bin/crb status
+      register: base_crb
+      changed_when: false
+      check_mode: false
+      become: true
+
+    - name: Enable the CodeReady Builder repository
+      ansible.builtin.command: /usr/bin/crb enable
+      changed_when: true
+      become: true
+      when: "'disabled' in base_crb.stdout"

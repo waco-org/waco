@@ -1,0 +1,12 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install Rust with rustup for one user
+    options:
+      rust_user:
+        type: str
+        required: true
+        description: The user Rust is installed for. The user must already exist.

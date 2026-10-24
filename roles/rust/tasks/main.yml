@@ -1,0 +1,46 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+- name: Look up the home directory of {{ rust_user }}
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ rust_user }}"
+
+- name: Check whether rustup is installed for {{ rust_user }}
+  ansible.builtin.stat:
+    path: "{{ ansible_facts['getent_passwd'][rust_user][4] }}/.cargo/bin/rustup"
+  register: rust_rustup
+  become: true
+
+- name: Install Rust for {{ rust_user }}
+  when: not rust_rustup.stat.exists
+  become: true
+  become_user: "{{ rust_user }}"
+  block:
+    - name: Create a temporary file for the installer
+      ansible.builtin.tempfile:
+        suffix: .rustup-init.sh
+      register: rust_installer
+
+    - name: Download the rustup installer
+      ansible.builtin.get_url:
+        url: https://sh.rustup.rs
+        dest: "{{ rust_installer.path }}"
+        mode: "0700"
+        force: true
+      register: rust_download
+      until: rust_download is succeeded
+      retries: 3
+      delay: 3
+
+    - name: Run the rustup installer
+      ansible.builtin.command: /bin/sh {{ rust_installer.path }} -y
+      changed_when: true
+
+  always:
+    - name: Remove the installer
+      ansible.builtin.file:
+        path: "{{ rust_installer.path }}"
+        state: absent
+      when: rust_installer.path is defined

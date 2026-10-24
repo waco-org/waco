@@ -1,0 +1,77 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+# Variables of the component roles that aren't set here, e.g. docker_users
+# or virtualbox_release, can be set in the inventory and are passed through.
+
+- name: Configure the repositories and prerequisites
+  ansible.builtin.include_role:
+    name: waco_org.waco.base
+
+- name: Create the users
+  ansible.builtin.include_role:
+    name: waco_org.waco.users
+  vars:
+    users_list: "{{ waco_users }}"
+
+- name: Install the distro packages
+  ansible.builtin.include_role:
+    name: waco_org.waco.packages
+  vars:
+    packages_list: "{{ waco_packages }}"
+
+- name: Install the system-wide flatpak apps
+  ansible.builtin.include_role:
+    name: waco_org.waco.flatpak
+  vars:
+    flatpak_apps: "{{ waco_flatpak_apps }}"
+  when: waco_flatpak_apps | length > 0
+
+- name: Install Docker
+  ansible.builtin.include_role:
+    name: waco_org.waco.docker
+  when: waco_has_docker
+
+- name: Install Dropbox
+  ansible.builtin.include_role:
+    name: waco_org.waco.dropbox
+  when: waco_has_dropbox
+
+- name: Install grsync
+  ansible.builtin.include_role:
+    name: waco_org.waco.grsync
+  when: waco_has_grsync
+
+- name: Install Maven
+  ansible.builtin.include_role:
+    name: waco_org.waco.maven
+  when: waco_has_maven
+
+- name: Install Packer and Vagrant
+  ansible.builtin.include_role:
+    name: waco_org.waco.hashicorp
+  vars:
+    hashicorp_packages: "{{ (waco_has_packer | ternary(['packer'], [])) + (waco_has_vagrant | ternary(['vagrant'], [])) }}"
+  when: waco_has_packer or waco_has_vagrant
+
+- name: Install VirtualBox
+  ansible.builtin.include_role:
+    name: waco_org.waco.virtualbox
+  when: waco_has_virtualbox
+
+- name: Install Visual Studio Code
+  ansible.builtin.include_role:
+    name: waco_org.waco.vscode
+  when: waco_has_vscode
+
+- name: Install uv
+  ansible.builtin.include_role:
+    name: waco_org.waco.python
+  when: waco_has_python
+
+- name: Apply the per-user settings
+  ansible.builtin.include_tasks: user.yml
+  loop: "{{ waco_users }}"
+  loop_control:
+    loop_var: workstation_user

@@ -1,0 +1,15 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Create the test user
+      ansible.builtin.user:
+        name: user
+
+    - name: Install Docker
+      ansible.builtin.include_role:
+        name: waco_org.waco.docker
+      vars:
+        docker_users: ["user"]
+        # The test containers can't run the Docker daemon
+        start_service: false

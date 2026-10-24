@@ -1,0 +1,32 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: waco_org.waco.workstation
+  vars:
+    waco_packages:
+      - "{{ (ansible_facts['os_family'] == 'RedHat') | ternary('vim-X11', 'vim-gui-common') }}"
+    waco_flatpak_apps:
+      - org.musicbrainz.Picard
+    waco_has_docker: true
+    docker_users: ["user"]
+    # The test containers can't run the Docker daemon
+    start_service: false
+    waco_has_dropbox: true
+    waco_has_grsync: true
+    waco_has_maven: true
+    waco_has_packer: true
+    waco_has_python: true
+    waco_has_vagrant: true
+    waco_has_virtualbox: true
+    waco_has_vscode: true
+    waco_users: ["user"]
+    waco_user_settings:
+      user:
+        has_rust: true
+        flatpak_apps:
+          - org.freac.freac
+        python_versions: ["3.13"]
+        python_tools:
+          - name: tox
+            with: [tox-uv]

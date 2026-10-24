@@ -7,7 +7,7 @@ name: test
 # To keep within the free plan's Actions minutes, the full Molecule matrix
 # (about 470 billed minutes) runs only on pull requests into main and when
 # started by hand. Every push gets lint only, and the monthly run is a smoke
-# test of master-default on every distro.
+# test of workstation-default on every distro.
 on:
   push:
   pull_request:
@@ -46,7 +46,7 @@ jobs:
         run: |
           distros=${IN_DISTROS:-$(grep -v '^\s*\(#\|$\)' extensions/molecule/distros)}
           scenarios=${IN_SCENARIOS:-$(cd extensions/molecule && ls -d */ | tr -d /)}
-          if [ "$EVENT" = schedule ]; then scenarios=master-default; fi
+          if [ "$EVENT" = schedule ]; then scenarios=workstation-default; fi
           echo "distros=$(printf '%s\n' $distros | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
           echo "scenarios=$(printf '%s\n' $scenarios | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
 

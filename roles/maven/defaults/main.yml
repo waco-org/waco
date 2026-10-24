@@ -1,0 +1,6 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+# EL9 packages Maven as module streams; this one is installed there
+maven_el9_stream: "3.9"

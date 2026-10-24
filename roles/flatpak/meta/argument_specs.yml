@@ -1,0 +1,33 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install flatpak apps system-wide
+    description:
+      - Red Hat family only for now; elsewhere the apps are skipped with a warning.
+    options: &options
+      flatpak_apps:
+        type: list
+        elements: str
+        default: []
+        description: Flatpak app IDs, e.g. org.musicbrainz.Picard.
+      flatpak_remote:
+        type: str
+        default: flathub
+        description: Name of the remote the apps come from.
+      flatpak_remote_url:
+        type: str
+        default: https://dl.flathub.org/repo/flathub.flatpakrepo
+        description: URL of the remote's .flatpakrepo file.
+  user:
+    short_description: Install flatpak apps for one user
+    description:
+      - Red Hat family only for now; elsewhere the apps are skipped with a warning.
+    options:
+      <<: *options
+      flatpak_user:
+        type: str
+        required: true
+        description: The user the apps are installed for.

@@ -1,0 +1,11 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Configure the repositories (Red Hat family)
+  ansible.builtin.include_tasks: redhat.yml
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install the prerequisites (Ubuntu)
+  ansible.builtin.include_tasks: debian.yml
+  when: ansible_facts['os_family'] == 'Debian'

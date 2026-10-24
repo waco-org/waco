@@ -5,10 +5,9 @@
 # Requirements of the roles that are not collections, plus the collections needed
 # to run the tests. Molecule installs them automatically before running a scenario.
 roles:
-  - name: geerlingguy.repo-epel
   - name: nmusatti.docker_ce
-  - name: nmusatti.source_python
-  - name: bobbyrenwick.pip
+  # Used by nmusatti.docker_ce on the Red Hat family
+  - name: geerlingguy.repo-epel
 
 collections:
   - name: community.general

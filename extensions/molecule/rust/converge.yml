@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Create the test user
+      ansible.builtin.user:
+        name: user
+
+    - name: Install Rust for the test user
+      ansible.builtin.include_role:
+        name: waco_org.waco.rust
+      vars:
+        rust_user: user

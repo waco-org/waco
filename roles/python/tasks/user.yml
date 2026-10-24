@@ -1,0 +1,33 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Find uv
+  ansible.builtin.stat:
+    path: "{{ python_uv_local }}"
+  register: python_uv_stat
+
+- name: Install Python versions and tools for {{ python_user }}
+  vars:
+    python_uv: "{{ python_uv_stat.stat.exists | ternary(python_uv_local, '/usr/bin/uv') }}"
+  become: true
+  become_user: "{{ python_user }}"
+  block:
+    - name: Install Python versions for {{ python_user }}
+      ansible.builtin.command:
+        argv: "{{ [python_uv, 'python', 'install'] + python_versions }}"
+      register: python_install
+      changed_when: "'Installed' in python_install.stderr"
+      when: python_versions | length > 0
+
+    - name: Install tools for {{ python_user }}
+      ansible.builtin.command:
+        argv: "{{ [python_uv, 'tool', 'install', python_tool.name]
+          + (python_tool['with'] | default([]) | map('regex_replace', '^', '--with=') | list) }}"
+      vars:
+        python_tool: "{{ (item is mapping) | ternary(item, {'name': item}) }}"
+      loop: "{{ python_tools }}"
+      loop_control:
+        label: "{{ python_tool.name }}"
+      register: python_tool_install
+      changed_when: "'already installed' not in python_tool_install.stderr"
