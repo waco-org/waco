@@ -40,9 +40,10 @@ def test_docker_access(host):
 
 def test_components(host):
     for command in ('docker --version', 'mvn --version', 'packer -version',
-                    'vagrant --version', 'vboxmanage --version', 'code --version',
-                    'uv --version'):
+                    'vagrant --version', 'vboxmanage --version', 'uv --version'):
         assert host.run(command).rc == 0, command
+    # code refuses to run as root
+    assert host.file('/usr/bin/code').exists
 
 
 def test_rust_user(host):
