@@ -2,4 +2,6 @@
 # Workstation as Code
 # Copyright Nicola Musatti 2026.
 
-dependencies: []
+# base also refreshes stale apt lists, which nmusatti.docker_ce doesn't do.
+dependencies:
+  - role: waco_org.waco.base
