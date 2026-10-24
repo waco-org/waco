@@ -1,5 +1,6 @@
 ---
 # Workstation as Code
 exclude_paths:
+  - .ansible/
   - .cache/
   - .venv/
