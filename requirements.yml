@@ -6,8 +6,6 @@
 # to run the tests. Molecule installs them automatically before running a scenario.
 roles:
   - name: nmusatti.docker_ce
-  # Used by nmusatti.docker_ce on the Red Hat family
-  - name: geerlingguy.repo-epel
 
 collections:
   - name: community.general
