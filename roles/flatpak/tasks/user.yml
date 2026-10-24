@@ -1,0 +1,9 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Install flatpak apps for {{ flatpak_user }}
+  ansible.builtin.include_tasks: install.yml
+  vars:
+    flatpak_method: user
+    flatpak_owner: "{{ flatpak_user }}"

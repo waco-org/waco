@@ -1,0 +1,18 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install Oracle VirtualBox from Oracle's repository
+    options:
+      virtualbox_release:
+        type: str
+        default: "7.2"
+        description: The VirtualBox major release.
+      virtualbox_package_version:
+        type: str
+        default: ""
+        description:
+          - A specific package version within the release, e.g. to stay on an earlier minor
+            release. Empty for the newest.

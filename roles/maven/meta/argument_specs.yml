@@ -1,0 +1,12 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install the distro's Apache Maven
+    options:
+      maven_el9_stream:
+        type: str
+        default: "3.9"
+        description: The Maven module stream installed on EL9. Other distros have a single Maven.

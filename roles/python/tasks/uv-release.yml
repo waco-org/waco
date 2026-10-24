@@ -1,0 +1,51 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Check the installed uv release
+  ansible.builtin.command: "{{ python_uv_local }} --version"
+  register: python_uv_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Install into /usr/local/bin uv {{ python_uv_version }}
+  when: python_uv_installed.rc != 0 or python_uv_version not in python_uv_installed.stdout.split()
+  become: true
+  block:
+    - name: Install tar
+      ansible.builtin.package:
+        name: tar
+
+    - name: Create a temporary directory for the download
+      ansible.builtin.tempfile:
+        state: directory
+      register: python_uv_tmp
+
+    - name: Download the uv release
+      ansible.builtin.get_url:
+        url: "{{ python_uv_url }}"
+        dest: "{{ python_uv_tmp.path }}/uv.tar.gz"
+        checksum: "sha256:{{ python_uv_url }}.sha256"
+        mode: "0644"
+      register: python_uv_download
+      until: python_uv_download is succeeded
+      retries: 3
+      delay: 3
+
+    - name: Unpack uv and uvx
+      ansible.builtin.unarchive:
+        src: "{{ python_uv_tmp.path }}/uv.tar.gz"
+        dest: "{{ python_uv_local | dirname }}"
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
+        owner: root
+        group: root
+
+  always:
+    - name: Remove the temporary directory
+      ansible.builtin.file:
+        path: "{{ python_uv_tmp.path }}"
+        state: absent
+      when: python_uv_tmp.path is defined

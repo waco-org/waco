@@ -1,0 +1,5 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2021 - 2026.
+
+hashicorp_rpm_distro: "{{ (ansible_facts['distribution'] == 'Fedora') | ternary('fedora', 'RHEL') }}"

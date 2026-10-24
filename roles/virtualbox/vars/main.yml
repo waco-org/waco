@@ -1,0 +1,7 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+virtualbox_rpm_distro: "{{ (ansible_facts['distribution'] == 'Fedora') | ternary('fedora', 'el') }}"
+virtualbox_rpm_package: "VirtualBox-{{ virtualbox_release }}{{ (virtualbox_package_version | length > 0) | ternary('-' + virtualbox_package_version, '') }}"
+virtualbox_deb_package: "virtualbox-{{ virtualbox_release }}{{ (virtualbox_package_version | length > 0) | ternary('=' + virtualbox_package_version, '') }}"

@@ -1,0 +1,36 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+# The components to install
+waco_has_docker: false
+waco_has_dropbox: false
+waco_has_grsync: false
+waco_has_maven: false
+waco_has_packer: false
+waco_has_python: false
+waco_has_vagrant: false
+waco_has_virtualbox: false
+waco_has_vscode: false
+
+# Distro packages to install. They must exist on every distro release the host may run.
+waco_packages: []
+
+# Flatpak apps to install system-wide (Red Hat family only for now)
+waco_flatpak_apps: []
+
+# Users that must exist, and their settings. Each user's settings are merged
+# over waco_user_defaults, e.g.:
+# waco_user_settings:
+#   nick:
+#     has_rust: true
+#     flatpak_apps: [org.freac.freac]
+#     python_versions: ["3.13"]
+#     python_tools: [{name: tox, with: [tox-uv]}]
+waco_users: []
+waco_user_settings: {}
+waco_user_defaults:
+  has_rust: false
+  flatpak_apps: []
+  python_versions: []
+  python_tools: []

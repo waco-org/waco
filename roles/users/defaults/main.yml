@@ -1,0 +1,6 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Users that must exist. New ones are created without a usable password.
+users_list: []

@@ -1,0 +1,6 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Distro packages to install. They must exist on every distro release the host may run.
+packages_list: []

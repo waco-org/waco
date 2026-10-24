@@ -1,0 +1,17 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2022 - 2026.
+
+- name: Install the Dropbox flatpak (Red Hat family)
+  ansible.builtin.include_role:
+    name: waco_org.waco.flatpak
+  vars:
+    flatpak_apps:
+      - com.dropbox.Client
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install Dropbox (Ubuntu)
+  ansible.builtin.apt:
+    name: nautilus-dropbox
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'

@@ -1,0 +1,6 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+# Users who may use Docker. Membership of the docker group is root-equivalent.
+docker_users: []

@@ -1,0 +1,6 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+dependencies:
+  - role: waco_org.waco.base

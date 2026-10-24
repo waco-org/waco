@@ -1,0 +1,3 @@
+# The inventory-level waco_* variables belong to the workstation role by design
+# (waco-docs phase2-status.md, "Variable names").
+roles/workstation/defaults/main.yml var-naming[no-role-prefix]

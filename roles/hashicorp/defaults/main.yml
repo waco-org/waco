@@ -1,0 +1,6 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2021 - 2026.
+
+# Packages to install from the HashiCorp repository, e.g. packer, vagrant
+hashicorp_packages: []

@@ -1,0 +1,37 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2021 - 2026.
+
+- name: Add the HashiCorp repository (Red Hat family)
+  ansible.builtin.yum_repository:
+    name: hashicorp
+    description: HashiCorp Stable
+    baseurl: "https://rpm.releases.hashicorp.com/{{ hashicorp_rpm_distro }}/{{ ansible_facts['distribution_major_version'] }}/$basearch/stable"
+    gpgkey: https://rpm.releases.hashicorp.com/gpg
+    gpgcheck: true
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Add the HashiCorp repository (Ubuntu)
+  ansible.builtin.deb822_repository:
+    name: hashicorp
+    uris: https://apt.releases.hashicorp.com
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components: main
+    signed_by: https://apt.releases.hashicorp.com/gpg
+  become: true
+  register: hashicorp_apt_repo
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install the HashiCorp packages (Red Hat family)
+  ansible.builtin.dnf:
+    name: "{{ hashicorp_packages }}"
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install the HashiCorp packages (Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ hashicorp_packages }}"
+    update_cache: "{{ hashicorp_apt_repo is changed }}"
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'

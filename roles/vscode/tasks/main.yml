@@ -1,0 +1,51 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+- name: Add the VS Code repository (Red Hat family)
+  ansible.builtin.yum_repository:
+    name: code
+    description: Visual Studio Code
+    baseurl: https://packages.microsoft.com/yumrepos/vscode
+    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+    gpgcheck: true
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install VS Code (Red Hat family)
+  ansible.builtin.dnf:
+    name: code
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+# The package would otherwise add a second definition of the repository.
+- name: Stop the VS Code package from adding its own repository (Ubuntu)
+  ansible.builtin.debconf:
+    name: code
+    question: code/add-microsoft-repo
+    vtype: boolean
+    value: "false"
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Add the VS Code repository (Ubuntu)
+  ansible.builtin.deb822_repository:
+    name: vscode
+    uris: https://packages.microsoft.com/repos/code
+    suites: stable
+    components: main
+    architectures:
+      - amd64
+      - arm64
+      - armhf
+    signed_by: https://packages.microsoft.com/keys/microsoft.asc
+  become: true
+  register: vscode_apt_repo
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install VS Code (Ubuntu)
+  ansible.builtin.apt:
+    name: code
+    update_cache: "{{ vscode_apt_repo is changed }}"
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'

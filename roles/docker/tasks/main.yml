@@ -1,0 +1,15 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+- name: Install Docker CE
+  ansible.builtin.include_role:
+    name: nmusatti.docker_ce
+
+- name: Give users access to Docker
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  become: true
+  loop: "{{ docker_users }}"

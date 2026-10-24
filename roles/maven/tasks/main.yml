@@ -1,0 +1,16 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+# Projects that need a specific Maven release use the Maven wrapper (mvnw).
+- name: Install Maven from its module stream (EL9)
+  ansible.builtin.dnf:
+    name: "@maven:{{ maven_el9_stream }}/common"
+  become: true
+  when: maven_from_module
+
+- name: Install Maven
+  ansible.builtin.package:
+    name: maven
+  become: true
+  when: not maven_from_module

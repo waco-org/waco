@@ -1,0 +1,10 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2020 - 2026.
+
+# The VirtualBox major release
+virtualbox_release: "7.2"
+
+# A specific package version within the release, e.g. to stay on an earlier minor
+# release; empty for the newest
+virtualbox_package_version: ""

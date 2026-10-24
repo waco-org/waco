@@ -1,0 +1,13 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install distro packages
+    options:
+      packages_list:
+        type: list
+        elements: str
+        default: []
+        description: Distro packages to install.

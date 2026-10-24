@@ -1,0 +1,9 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Install the distro packages
+  ansible.builtin.package:
+    name: "{{ packages_list }}"
+  become: true
+  when: packages_list | length > 0

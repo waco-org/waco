@@ -1,0 +1,8 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install Visual Studio Code from Microsoft's repository
+    options: {}
