@@ -4,12 +4,12 @@
 
 name: test
 
-# To keep within the free plan's Actions minutes, the full Molecule matrix
-# runs only on pull requests into main and when started by hand. Every push
-# gets lint only, and the monthly run is a smoke test of workstation-default on
-# every distro. There is one Molecule job per distro, which runs all of its
-# scenarios: per-job setup and rounding up to whole minutes are paid once per
-# distro rather than once per scenario, and the test image is built only once.
+# A full Molecule run takes a while, so it runs only on pull requests into main
+# and when started by hand (which can pick a subset). Every push gets lint only,
+# and the monthly run is a smoke test of workstation-default on every distro.
+# There is one Molecule job per distro, which runs all of its scenarios: job
+# setup is done once per distro rather than once per scenario, and the test
+# image is built only once.
 on:
   push:
   pull_request:
