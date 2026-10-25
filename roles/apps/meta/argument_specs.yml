@@ -1,0 +1,37 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install apps system-wide from the app catalog
+    description:
+      - Looks up each app's source for the platform in vars/catalog.yml (a distro package,
+        a flatpak, a snap or a per-tool role) and installs the apps of each source together.
+    options: &options
+      apps_list:
+        type: list
+        elements: str
+        default: []
+        description: Apps to install, by catalog name.
+      apps_catalog_extra:
+        type: dict
+        default: {}
+        description:
+          - Catalog entries to add or override, merged recursively over the shipped catalog,
+            so that a host can add an app or change one platform's source.
+      apps_allow_missing:
+        type: bool
+        default: false
+        description: Warn instead of failing when an app has no source on the platform.
+  user:
+    short_description: Install apps for one user from the app catalog
+    description:
+      - Only Flatpak installs per user. Apps whose source on the platform is a package, a
+        snap or a role are installed system-wide, with a note.
+    options:
+      <<: *options
+      apps_user:
+        type: str
+        required: true
+        description: The user the apps are installed for.

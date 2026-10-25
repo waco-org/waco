@@ -1,0 +1,29 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Install a snap (Ubuntu)
+      ansible.builtin.include_role:
+        name: waco_org.waco.snap
+      vars:
+        snap_apps:
+          - hello-world
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Try to install a snap (Red Hat family)
+      when: ansible_facts['os_family'] == 'RedHat'
+      block:
+        - name: Include the role, which must fail
+          ansible.builtin.include_role:
+            name: waco_org.waco.snap
+          vars:
+            snap_apps:
+              - hello-world
+
+        - name: Report that the role did not fail
+          ansible.builtin.fail:
+            msg: the snap role should refuse the Red Hat family
+      rescue:
+        - name: Check that it failed for the right reason
+          ansible.builtin.assert:
+            that: "'only supported on Ubuntu' in ansible_failed_result.msg"

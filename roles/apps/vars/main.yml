@@ -1,0 +1,13 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# The kinds of source a catalog entry can name for a platform
+apps_kinds: [package, flatpak, snap, role, unavailable]
+
+# The catalog keys that apply to this host, from the most specific to the least.
+# RHEL's distribution fact is RedHat, which would clash with the os_family key.
+apps_distribution: "{{ {'RedHat': 'rhel'}.get(ansible_facts['distribution'], ansible_facts['distribution'] | lower) }}"
+apps_release: "{{ ansible_facts['distribution_version'] if ansible_facts['distribution'] == 'Ubuntu' else ansible_facts['distribution_major_version'] }}"
+apps_el: "{{ (ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution'] != 'Fedora') | ternary(['el' ~ ansible_facts['distribution_major_version']], []) }}"
+apps_platform_keys: "{{ [apps_distribution ~ '-' ~ apps_release, apps_distribution] + apps_el + [ansible_facts['os_family'] | lower, 'default'] }}"

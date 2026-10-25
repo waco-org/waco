@@ -11,7 +11,7 @@ The `workstation` role applies the other roles, selected by variables in the inv
 
 ```yaml
 # host_vars/myhost.yml
-waco_has_vscode: true
+waco_apps: [vscode, grsync]
 waco_has_docker: true
 docker_users: [nick]
 waco_packages: [vim-X11]
@@ -19,11 +19,17 @@ waco_users: [nick]
 waco_user_settings:
   nick:
     has_rust: true
+    apps: [dropbox]
     python_versions: ["3.13"]
     python_tools: [{name: tox, with: [tox-uv]}]
 ```
 
     ansible-playbook -i inventory --ask-become-pass waco_org.waco.workstation
+
+Apps are named in the app catalog, `roles/apps/vars/catalog.yml`, which says where each one
+comes from on each platform: a distro package, a flatpak, a snap or a per-tool role. Only
+flatpaks can be installed per user; a user's other apps are installed system-wide.
+`waco_packages` and `waco_flatpak_apps` remain for anything not in the catalog.
 
 Each role documents its variables in `meta/argument_specs.yml`; `ansible-doc -t role
 waco_org.waco.<role>` shows them.
@@ -34,10 +40,10 @@ waco_org.waco.<role>` shows them.
 | `base` | EPEL and CodeReady Builder on EL; apt repository prerequisites on Ubuntu |
 | `packages` | distro packages |
 | `users` | user accounts |
-| `flatpak` | Flathub apps, system-wide or per user (Red Hat family only for now) |
+| `apps` | the apps in the catalog, each from its source for the platform |
+| `flatpak` | Flathub apps, system-wide or per user |
+| `snap` | snaps (Ubuntu only) |
 | `docker` | Docker CE (via `nmusatti.docker_ce`) and per-user access through the `docker` group, which is root-equivalent |
-| `dropbox` | Dropbox: the Flathub app on the Red Hat family, `nautilus-dropbox` on Ubuntu |
-| `grsync` | grsync, where the distro has it (not on EL10) |
 | `maven` | the distro's Apache Maven; projects needing a specific release use `mvnw` |
 | `hashicorp` | Packer, Vagrant and other packages from HashiCorp's repository |
 | `virtualbox` | Oracle VirtualBox from Oracle's repository |

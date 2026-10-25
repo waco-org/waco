@@ -1,0 +1,9 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Snaps to install with strict confinement, e.g. hello-world
+snap_apps: []
+
+# Snaps to install with classic confinement
+snap_classic_apps: []

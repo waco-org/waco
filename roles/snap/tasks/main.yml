@@ -1,0 +1,36 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Install snaps
+  when: (snap_apps + snap_classic_apps) | length > 0
+  block:
+    - name: Check that the platform uses snap
+      ansible.builtin.assert:
+        that: ansible_facts['os_family'] == 'Debian'
+        fail_msg: snap is only supported on Ubuntu; the Red Hat family uses Flatpak
+
+    - name: Install snapd
+      ansible.builtin.apt:
+        name: snapd
+      become: true
+
+    - name: Start snapd
+      ansible.builtin.systemd_service:
+        name: snapd.socket
+        state: started
+        enabled: true
+      become: true
+
+    - name: Install the snaps with strict confinement
+      community.general.snap:
+        name: "{{ snap_apps }}"
+      become: true
+      when: snap_apps | length > 0
+
+    - name: Install the snaps with classic confinement
+      community.general.snap:
+        name: "{{ snap_classic_apps }}"
+        classic: true
+      become: true
+      when: snap_classic_apps | length > 0

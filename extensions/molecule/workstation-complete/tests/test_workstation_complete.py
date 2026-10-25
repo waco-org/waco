@@ -10,8 +10,8 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 # Each component has its own scenario; this one checks that the workstation
 # role applies them together, including the per-user settings.
 
-def is_redhat(host):
-    return host.system_info.distribution != 'ubuntu'
+def is_ubuntu(host):
+    return host.system_info.distribution == 'ubuntu'
 
 
 def test_user(host):
@@ -23,15 +23,22 @@ def test_system_package(host):
 
 
 def test_flatpak_system(host):
-    if is_redhat(host):
-        assert host.file('/var/lib/flatpak/app/org.musicbrainz.Picard').is_directory
+    assert host.file('/var/lib/flatpak/app/org.musicbrainz.Picard').is_directory
 
 
 def test_flatpak_user(host):
-    if is_redhat(host):
-        f = host.file('/home/user/.local/share/flatpak/app/org.freac.freac')
-        assert f.is_directory
-        assert f.user == 'user'
+    f = host.file('/home/user/.local/share/flatpak/app/org.freac.freac')
+    assert f.is_directory
+    assert f.user == 'user'
+
+
+# The apps scenario checks the catalog in full; here only that the
+# workstation role passes waco_apps and the users' apps on.
+def test_user_app(host):
+    if is_ubuntu(host):
+        assert host.package('nautilus-dropbox').is_installed
+    else:
+        assert host.file('/home/user/.local/share/flatpak/app/com.dropbox.Client').is_directory
 
 
 def test_docker_access(host):
