@@ -2,19 +2,13 @@
 # Workstation as Code
 # Copyright Nicola Musatti 2020 - 2026.
 
-# Flatpak on Ubuntu is a Phase 6 decision (the natural source there is snap).
-- name: Warn that flatpak apps are skipped on this platform
-  ansible.builtin.debug:
-    msg: >-
-      WARNING: flatpak is only supported on the Red Hat family;
-      skipped: {{ flatpak_apps | join(', ') }}
-  when: ansible_facts['os_family'] != 'RedHat' and flatpak_apps | length > 0
-
-- name: Install flatpak apps (Red Hat family)
-  when: ansible_facts['os_family'] == 'RedHat' and flatpak_apps | length > 0
+# On Ubuntu the natural source is snap, so the apps catalog picks Flatpak there
+# only as a recorded exception; this role installs whatever it is given.
+- name: Install flatpak apps
+  when: flatpak_apps | length > 0
   block:
     - name: Install flatpak
-      ansible.builtin.dnf:
+      ansible.builtin.package:
         name: flatpak
       become: true
 

@@ -5,8 +5,6 @@
 argument_specs:
   main:
     short_description: Install flatpak apps system-wide
-    description:
-      - Red Hat family only for now; elsewhere the apps are skipped with a warning.
     options: &options
       flatpak_apps:
         type: list
@@ -23,8 +21,6 @@ argument_specs:
         description: URL of the remote's .flatpakrepo file.
   user:
     short_description: Install flatpak apps for one user
-    description:
-      - Red Hat family only for now; elsewhere the apps are skipped with a warning.
     options:
       <<: *options
       flatpak_user:

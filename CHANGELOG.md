@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- App catalog: `waco_apps` names apps, and the new `apps` role installs each one from its
+  source for the platform (distro package, flatpak, snap or per-tool role), as recorded in
+  `roles/apps/vars/catalog.yml`. An app without a source fails the run unless
+  `waco_apps_allow_missing` is set. Users can have `apps` too.
+- `flatpak` works on Ubuntu; new `snap` role (Ubuntu only).
+- Breaking: `waco_has_dropbox`, `waco_has_grsync`, `waco_has_packer`, `waco_has_vagrant`,
+  `waco_has_virtualbox` and `waco_has_vscode` are replaced by `waco_apps`, and the `dropbox`
+  and `grsync` roles by catalog entries.
 - Collection created from the `waco-master` and `waco-python` roles.
 - Molecule test setup with Podman, without tox.
 - `master` split into per-tool roles applied by the new `workstation` role, plus a

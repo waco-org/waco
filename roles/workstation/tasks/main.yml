@@ -28,42 +28,24 @@
     flatpak_apps: "{{ waco_flatpak_apps }}"
   when: waco_flatpak_apps | length > 0
 
+- name: Install the apps
+  ansible.builtin.include_role:
+    name: waco_org.waco.apps
+  vars:
+    apps_list: "{{ waco_apps }}"
+    apps_catalog_extra: "{{ waco_apps_catalog_extra }}"
+    apps_allow_missing: "{{ waco_apps_allow_missing }}"
+  when: waco_apps | length > 0
+
 - name: Install Docker
   ansible.builtin.include_role:
     name: waco_org.waco.docker
   when: waco_has_docker
 
-- name: Install Dropbox
-  ansible.builtin.include_role:
-    name: waco_org.waco.dropbox
-  when: waco_has_dropbox
-
-- name: Install grsync
-  ansible.builtin.include_role:
-    name: waco_org.waco.grsync
-  when: waco_has_grsync
-
 - name: Install Maven
   ansible.builtin.include_role:
     name: waco_org.waco.maven
   when: waco_has_maven
-
-- name: Install Packer and Vagrant
-  ansible.builtin.include_role:
-    name: waco_org.waco.hashicorp
-  vars:
-    hashicorp_packages: "{{ (waco_has_packer | ternary(['packer'], [])) + (waco_has_vagrant | ternary(['vagrant'], [])) }}"
-  when: waco_has_packer or waco_has_vagrant
-
-- name: Install VirtualBox
-  ansible.builtin.include_role:
-    name: waco_org.waco.virtualbox
-  when: waco_has_virtualbox
-
-- name: Install Visual Studio Code
-  ansible.builtin.include_role:
-    name: waco_org.waco.vscode
-  when: waco_has_vscode
 
 - name: Install uv
   ansible.builtin.include_role:

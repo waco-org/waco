@@ -1,0 +1,9 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Resolve the apps
+  ansible.builtin.include_tasks: resolve.yml
+
+- name: Install the apps system-wide
+  ansible.builtin.include_tasks: install.yml

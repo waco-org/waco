@@ -1,0 +1,16 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# include_role can't take its vars from a template, so the role's variables
+# are set as facts; lists from several apps are concatenated.
+- name: Set the variables of role {{ apps_group[0] }}
+  ansible.builtin.set_fact:
+    "{{ item.key }}": "{{ item.value }}"
+  loop: "{{ apps_group[1] | map(attribute='vars', default={}) | combine(list_merge='append_rp') | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Run role {{ apps_group[0] }}
+  ansible.builtin.include_role:
+    name: waco_org.waco.{{ apps_group[0] }}

@@ -1,0 +1,63 @@
+---
+# Installs every catalog entry, dropbox for a user and the others system-wide,
+# and saves how each was resolved for the tests, which run each entry's check.
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Load the catalog
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../../../roles/apps/vars/catalog.yml"
+        name: test_catalog
+
+    - name: Create the test user
+      ansible.builtin.user:
+        name: user
+
+    - name: Install the apps system-wide
+      ansible.builtin.include_role:
+        name: waco_org.waco.apps
+      vars:
+        apps_list: "{{ test_catalog.apps_catalog | list | difference(['dropbox']) }}"
+        apps_allow_missing: true
+
+    - name: Save how the system-wide apps were resolved
+      ansible.builtin.copy:
+        content: "{{ apps_resolved | to_nice_json }}"
+        dest: /var/tmp/waco-apps-system.json
+        mode: "0644"
+
+    - name: Install an app for the test user
+      ansible.builtin.include_role:
+        name: waco_org.waco.apps
+        tasks_from: user
+      vars:
+        apps_user: user
+        apps_list: [dropbox]
+
+    - name: Save how the user's apps were resolved
+      ansible.builtin.copy:
+        content: "{{ apps_resolved | to_nice_json }}"
+        dest: /var/tmp/waco-apps-user.json
+        mode: "0644"
+
+    - name: Ask for an app with no source
+      block:
+        - name: Include the role, which must fail
+          ansible.builtin.include_role:
+            name: waco_org.waco.apps
+          vars:
+            apps_list: [nowhere]
+            apps_catalog_extra:
+              nowhere:
+                description: An app with no source
+                check: {command: nowhere}
+                sources:
+                  default: {unavailable: test entry}
+
+        - name: Report that the role did not fail
+          ansible.builtin.fail:
+            msg: the apps role should fail on an unavailable app
+      rescue:
+        - name: Check that it failed for the right reason
+          ansible.builtin.assert:
+            that: "'nowhere (test entry)' in ansible_failed_result.msg"
