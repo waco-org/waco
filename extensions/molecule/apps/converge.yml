@@ -17,7 +17,7 @@
       ansible.builtin.include_role:
         name: waco_org.waco.apps
       vars:
-        apps_list: "{{ test_catalog.apps_catalog | list | difference(['dropbox']) }}"
+        apps_list: "{{ test_catalog.apps_catalog | list | difference(['dropbox']) | sort }}"
         apps_allow_missing: true
 
     - name: Save how the system-wide apps were resolved
