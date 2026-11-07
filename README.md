@@ -63,7 +63,7 @@ security fixes), and, with lower priority, CentOS Stream. The current list is in
 ## Development
 
 Tests use [Molecule](https://ansible.readthedocs.io/projects/molecule/) with rootless
-[Podman](https://podman.io/) containers that run systemd. You need Podman and Python 3.12 or
+[Podman](https://podman.io/) containers that run systemd. You need Podman and Python 3.13 or
 later.
 
     uv venv --python 3.13 .venv
