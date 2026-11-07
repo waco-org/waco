@@ -6,6 +6,17 @@
   ansible.builtin.set_fact:
     workstation_settings: "{{ waco_user_defaults | combine(waco_user_settings[workstation_user] | default({})) }}"
 
+- name: Install the apps of {{ workstation_user }}
+  ansible.builtin.include_role:
+    name: waco_org.waco.apps
+    tasks_from: user
+  vars:
+    apps_user: "{{ workstation_user }}"
+    apps_list: "{{ workstation_settings.apps }}"
+    apps_catalog_extra: "{{ waco_apps_catalog_extra }}"
+    apps_allow_missing: "{{ waco_apps_allow_missing }}"
+  when: workstation_settings.apps | length > 0
+
 - name: Install flatpak apps for {{ workstation_user }}
   ansible.builtin.include_role:
     name: waco_org.waco.flatpak

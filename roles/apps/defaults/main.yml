@@ -1,0 +1,12 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Apps to install, by catalog name (see vars/catalog.yml)
+apps_list: []
+
+# Catalog entries to add or override, merged recursively over the shipped catalog
+apps_catalog_extra: {}
+
+# Warn instead of failing when an app has no source on the platform
+apps_allow_missing: false

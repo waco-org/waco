@@ -1,0 +1,68 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Report the apps that have no source on this platform
+  vars:
+    apps_missing: "{{ apps_resolved | selectattr('kind', 'eq', 'unavailable') }}"
+  when: apps_missing | length > 0
+  block:
+    - name: Fail on the missing apps
+      ansible.builtin.fail:
+        msg: >-
+          No source on {{ apps_platform_keys[0] }}:
+          {% for a in apps_missing %}{{ a.app }} ({{ a.unavailable }}){{ loop.last | ternary('', '; ') }}{% endfor %}.
+          Set waco_apps_allow_missing to warn instead.
+      when: not apps_allow_missing
+
+    - name: Warn about the missing apps
+      ansible.builtin.debug:
+        msg: >-
+          WARNING: no source on {{ apps_platform_keys[0] }}, skipped:
+          {% for a in apps_missing %}{{ a.app }} ({{ a.unavailable }}){{ loop.last | ternary('', '; ') }}{% endfor %}
+
+- name: Note the apps installed system-wide although asked for one user
+  ansible.builtin.debug:
+    msg: >-
+      Only Flatpak installs per user, so these are installed system-wide:
+      {{ apps_resolved | selectattr('kind', 'in', ['package', 'snap', 'role']) | map(attribute='app') | join(', ') }}
+  when: apps_user is defined and apps_resolved | selectattr('kind', 'in', ['package', 'snap', 'role']) | length > 0
+
+- name: Install the apps that are distro packages
+  ansible.builtin.include_role:
+    name: waco_org.waco.packages
+  vars:
+    packages_list: "{{ apps_resolved | selectattr('kind', 'eq', 'package') | map(attribute='package') | flatten }}"
+  when: apps_resolved | selectattr('kind', 'eq', 'package') | length > 0
+
+- name: Install the apps that are flatpaks system-wide
+  ansible.builtin.include_role:
+    name: waco_org.waco.flatpak
+  vars:
+    flatpak_apps: "{{ apps_resolved | selectattr('kind', 'eq', 'flatpak') | map(attribute='flatpak') }}"
+  when: apps_user is not defined and apps_resolved | selectattr('kind', 'eq', 'flatpak') | length > 0
+
+- name: Install the apps that are flatpaks for one user
+  ansible.builtin.include_role:
+    name: waco_org.waco.flatpak
+    tasks_from: user
+  vars:
+    flatpak_user: "{{ apps_user }}"
+    flatpak_apps: "{{ apps_resolved | selectattr('kind', 'eq', 'flatpak') | map(attribute='flatpak') }}"
+  when: apps_user is defined and apps_resolved | selectattr('kind', 'eq', 'flatpak') | length > 0
+
+- name: Install the apps that are snaps
+  ansible.builtin.include_role:
+    name: waco_org.waco.snap
+  vars:
+    snap_apps: "{{ apps_resolved | selectattr('kind', 'eq', 'snap') | rejectattr('classic') | map(attribute='snap') }}"
+    snap_classic_apps: "{{ apps_resolved | selectattr('kind', 'eq', 'snap') | selectattr('classic') | map(attribute='snap') }}"
+  when: apps_resolved | selectattr('kind', 'eq', 'snap') | length > 0
+
+# Apps that share a role are installed by a single run of it.
+- name: Install the apps that have their own role
+  ansible.builtin.include_tasks: role.yml
+  loop: "{{ apps_resolved | selectattr('kind', 'eq', 'role') | groupby('role') | map('list') }}"
+  loop_control:
+    loop_var: apps_group
+    label: "{{ apps_group[0] }}"

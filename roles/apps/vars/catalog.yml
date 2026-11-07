@@ -1,0 +1,75 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# The app catalog: for each app, where it comes from on each platform.
+#
+# Each entry has:
+#   description: what the app is
+#   check:       how the tests tell that it is installed, one of
+#                {command: <name>} or {desktop: <desktop file id>}
+#   sources:     a map from platform key to source
+#
+# The platform keys, from the most specific to the least, are
+# <distribution>-<release> (ubuntu-24.04, rocky-10), <distribution> (ubuntu,
+# fedora, rocky, centos, rhel), el<major> (Rocky, CentOS Stream, RHEL),
+# <os_family> (redhat, debian) and default. The first one present wins.
+#
+# A source names exactly one kind:
+#   package: <name or list>   from the distro repos, EPEL and CRB included
+#   flatpak: <Flathub ID>
+#   snap: <name>              plus classic: true where needed
+#   role: <per-tool role>     plus vars: {...} for the role, merged over the
+#                             apps that share the role
+#   unavailable: <reason>
+# and may also have check: (overriding the entry's) and why:, which every
+# source that departs from the software policy's order must carry:
+#   Ubuntu: apt > vendor apt repo > snap
+#   Red Hat family: dnf > vendor RPM repo > Flatpak
+
+apps_catalog:
+  dropbox:
+    description: Dropbox client
+    check: {desktop: com.dropbox.Client}
+    sources:
+      redhat:
+        flatpak: com.dropbox.Client
+        why: not in the distro repos or EPEL, and Dropbox's own RPM repository covers Fedora only
+      ubuntu:
+        package: nautilus-dropbox
+        check: {command: dropbox}
+
+  grsync:
+    description: GUI for rsync
+    check: {command: grsync}
+    sources:
+      default: {package: grsync}
+      el10: {unavailable: neither EL10 nor EPEL 10 has grsync}
+
+  packer:
+    description: HashiCorp Packer, machine image builder
+    check: {command: packer}
+    sources:
+      default:
+        role: hashicorp
+        vars: {hashicorp_packages: [packer]}
+
+  vagrant:
+    description: HashiCorp Vagrant, development environments
+    check: {command: vagrant}
+    sources:
+      default:
+        role: hashicorp
+        vars: {hashicorp_packages: [vagrant]}
+
+  virtualbox:
+    description: Oracle VirtualBox
+    check: {command: vboxmanage}
+    sources:
+      default: {role: virtualbox}
+
+  vscode:
+    description: Visual Studio Code
+    check: {command: code}
+    sources:
+      default: {role: vscode}

@@ -4,19 +4,22 @@
 
 # The components to install
 waco_has_docker: false
-waco_has_dropbox: false
-waco_has_grsync: false
 waco_has_maven: false
-waco_has_packer: false
 waco_has_python: false
-waco_has_vagrant: false
-waco_has_virtualbox: false
-waco_has_vscode: false
+
+# Apps to install system-wide, by name in the app catalog (roles/apps/vars/catalog.yml)
+waco_apps: []
+
+# Catalog entries to add or override, merged recursively over the shipped catalog
+waco_apps_catalog_extra: {}
+
+# Warn instead of failing when an app has no source on the platform
+waco_apps_allow_missing: false
 
 # Distro packages to install. They must exist on every distro release the host may run.
 waco_packages: []
 
-# Flatpak apps to install system-wide (Red Hat family only for now)
+# Flatpak apps to install system-wide, for apps not in the catalog
 waco_flatpak_apps: []
 
 # Users that must exist, and their settings. Each user's settings are merged
@@ -24,6 +27,7 @@ waco_flatpak_apps: []
 # waco_user_settings:
 #   nick:
 #     has_rust: true
+#     apps: [dropbox]
 #     flatpak_apps: [org.freac.freac]
 #     python_versions: ["3.13"]
 #     python_tools: [{name: tox, with: [tox-uv]}]
@@ -31,6 +35,7 @@ waco_users: []
 waco_user_settings: {}
 waco_user_defaults:
   has_rust: false
+  apps: []
   flatpak_apps: []
   python_versions: []
   python_tools: []

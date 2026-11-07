@@ -6,20 +6,27 @@ argument_specs:
   main:
     short_description: Set up a workstation by applying the other Waco roles
     description:
-      - Applies the component roles selected by the waco_has_* variables, then the per-user
-        settings.
+      - Applies the component roles selected by the waco_has_* variables and the apps in
+        waco_apps, then the per-user settings.
       - Variables of the component roles, such as docker_users or virtualbox_release, can be
         set in the inventory and are passed through.
     options:
       waco_has_docker: {type: bool, default: false, description: Install Docker CE (role docker).}
-      waco_has_dropbox: {type: bool, default: false, description: Install Dropbox (role dropbox).}
-      waco_has_grsync: {type: bool, default: false, description: Install grsync where the distro has it (role grsync).}
       waco_has_maven: {type: bool, default: false, description: Install the distro's Maven (role maven).}
-      waco_has_packer: {type: bool, default: false, description: Install Packer (role hashicorp).}
       waco_has_python: {type: bool, default: false, description: "Install uv, and the users' Python versions and tools (role python)."}
-      waco_has_vagrant: {type: bool, default: false, description: Install Vagrant (role hashicorp).}
-      waco_has_virtualbox: {type: bool, default: false, description: Install VirtualBox (role virtualbox).}
-      waco_has_vscode: {type: bool, default: false, description: Install Visual Studio Code (role vscode).}
+      waco_apps:
+        type: list
+        elements: str
+        default: []
+        description: Apps to install system-wide, by name in the app catalog (role apps).
+      waco_apps_catalog_extra:
+        type: dict
+        default: {}
+        description: Catalog entries to add or override, merged recursively over the shipped catalog.
+      waco_apps_allow_missing:
+        type: bool
+        default: false
+        description: Warn instead of failing when an app has no source on the platform.
       waco_packages:
         type: list
         elements: str
@@ -29,7 +36,7 @@ argument_specs:
         type: list
         elements: str
         default: []
-        description: Flatpak apps to install system-wide (Red Hat family only for now).
+        description: Flatpak apps to install system-wide, for apps not in the catalog.
       waco_users:
         type: list
         elements: str
@@ -46,6 +53,7 @@ argument_specs:
         description: Default per-user settings.
         options:
           has_rust: {type: bool, default: false, description: Install Rust with rustup.}
+          apps: {type: list, elements: str, default: [], description: "Apps for the user, by catalog name; only flatpaks are per user."}
           flatpak_apps: {type: list, elements: str, default: [], description: Flatpak apps for the user.}
           python_versions: {type: list, elements: str, default: [], description: Python versions to install with uv.}
           python_tools: {type: list, elements: raw, default: [], description: Tools to install with uv (see the python role).}

@@ -1,0 +1,21 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install snaps
+    description:
+      - Ubuntu only. On the Red Hat family the software policy prefers Flatpak, so the role
+        fails there rather than install snapd.
+    options:
+      snap_apps:
+        type: list
+        elements: str
+        default: []
+        description: Snaps to install with strict confinement.
+      snap_classic_apps:
+        type: list
+        elements: str
+        default: []
+        description: Snaps to install with classic confinement.

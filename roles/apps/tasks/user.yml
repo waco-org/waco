@@ -1,0 +1,11 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Only Flatpak installs per user; apps from other sources are installed
+# system-wide, with a note.
+- name: Resolve the apps of {{ apps_user }}
+  ansible.builtin.include_tasks: resolve.yml
+
+- name: Install the apps of {{ apps_user }}
+  ansible.builtin.include_tasks: install.yml

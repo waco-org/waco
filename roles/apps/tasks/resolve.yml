@@ -1,0 +1,46 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Load the catalog
+  ansible.builtin.include_vars:
+    file: catalog.yml
+
+- name: Merge the inventory's catalog entries
+  ansible.builtin.set_fact:
+    apps_catalog_all: "{{ apps_catalog | combine(apps_catalog_extra, recursive=true) }}"
+    apps_resolved: []
+
+- name: Check that the apps are in the catalog
+  ansible.builtin.assert:
+    that: apps_list | difference(apps_catalog_all) | length == 0
+    fail_msg: "Not in the apps catalog: {{ apps_list | difference(apps_catalog_all) | join(', ') }}"
+    quiet: true
+
+# Each result is the source, plus the app's name, the platform key that
+# matched, the source's kind and the check that applies.
+- name: Find each app's source for {{ apps_platform_keys[0] }}
+  ansible.builtin.set_fact:
+    apps_resolved: "{{ apps_resolved + [apps_source | combine({'app': item, 'key': apps_key, 'kinds': apps_found, 'kind': apps_found | first | default('none'), 'check': apps_source.check | default(apps_entry.check)})] }}"
+  vars:
+    apps_entry: "{{ apps_catalog_all[item] }}"
+    apps_key: "{{ apps_platform_keys | select('in', apps_entry.sources) | first | default('none') }}"
+    apps_source: "{{ apps_entry.sources[apps_key] | default({'unavailable': 'no source for ' ~ apps_platform_keys[0]}) }}"
+    apps_found: "{{ apps_source | list | intersect(apps_kinds) }}"
+  loop: "{{ apps_list | unique }}"
+
+- name: Check that each source names exactly one kind
+  ansible.builtin.assert:
+    that: item.kinds | length == 1
+    fail_msg: "{{ item.app }} ({{ item.key }}): a source must have exactly one of {{ apps_kinds | join(', ') }}"
+    quiet: true
+  loop: "{{ apps_resolved }}"
+  loop_control:
+    label: "{{ item.app }}"
+
+- name: Show where the apps come from
+  ansible.builtin.debug:
+    msg: "{{ item.app }}: {{ item.kind }} {{ item[item.kind] }} ({{ item.key }})"
+  loop: "{{ apps_resolved }}"
+  loop_control:
+    label: "{{ item.app }}"
