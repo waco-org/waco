@@ -1,0 +1,16 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# The release to install, as YYYY-MM (e.g. 2026-09), or latest: the newest
+# December release, which changes once a year
+eclipse_release: latest
+
+# Keep the most recent of the other releases Waco installed, as a fallback;
+# false removes them all
+eclipse_keep_previous: true
+
+# Plugins installed with the p2 director, each as {repository: <p2 URL>, iu:
+# <installable unit>}, e.g. {repository: https://www.pydev.org/updates, iu:
+# org.python.pydev.feature.feature.group}
+eclipse_plugins: []

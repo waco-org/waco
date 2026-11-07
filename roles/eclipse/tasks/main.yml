@@ -1,0 +1,183 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Find the newest December release
+  ansible.builtin.uri:
+    url: "{{ eclipse_epp_url }}/release.xml"
+    return_content: true
+  register: eclipse_index
+  when: eclipse_release == 'latest'
+
+- name: Choose the release
+  ansible.builtin.set_fact:
+    eclipse_version: >-
+      {{ (eclipse_index.content | regex_findall('<(?:past|present)>(\d{4}-12)/R<') | sort | last)
+         if eclipse_release == 'latest' else eclipse_release }}
+
+- name: Check the release's name
+  ansible.builtin.assert:
+    that: eclipse_version is match('^\d{4}-\d{2}$')
+    fail_msg: "eclipse_release must be latest or YYYY-MM, not {{ eclipse_release }}"
+    quiet: true
+
+- name: Show the release
+  ansible.builtin.debug:
+    msg: "Eclipse {{ eclipse_version }} ({{ eclipse_release }})"
+
+- name: Set the install's paths
+  ansible.builtin.set_fact:
+    eclipse_home: /opt/eclipse-{{ eclipse_version }}
+    eclipse_archive: eclipse-java-{{ eclipse_version }}-R-linux-gtk-{{ eclipse_arch }}.tar.gz
+
+# The director needs a home directory, where it leaves files of its own.
+- name: Make a temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: waco-eclipse.
+  register: eclipse_tmp
+  changed_when: false
+
+- name: Install and configure the release
+  block:
+    - name: Check for the install
+      ansible.builtin.stat:
+        path: "{{ eclipse_home }}/{{ eclipse_marker }}"
+      register: eclipse_installed
+
+    - name: Install the release
+      when: not eclipse_installed.stat.exists
+      block:
+        - name: Install the tools to unpack it
+          ansible.builtin.package:
+            name: [tar, gzip]
+          become: true
+
+        - name: Get the archive's SHA-512
+          ansible.builtin.uri:
+            url: "{{ eclipse_epp_url }}/{{ eclipse_version }}/R/{{ eclipse_archive }}.sha512"
+            return_content: true
+          register: eclipse_sha512
+
+        - name: Download the archive
+          ansible.builtin.get_url:
+            url: "{{ eclipse_epp_url }}/{{ eclipse_version }}/R/{{ eclipse_archive }}"
+            dest: "{{ eclipse_tmp.path }}/{{ eclipse_archive }}"
+            checksum: "sha512:{{ eclipse_sha512.content.split() | first }}"
+            mode: "0644"
+            timeout: 120
+
+        - name: Create the install directory
+          ansible.builtin.file:
+            path: "{{ eclipse_home }}"
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+          become: true
+
+        - name: Unpack the archive
+          ansible.builtin.unarchive:
+            src: "{{ eclipse_tmp.path }}/{{ eclipse_archive }}"
+            dest: "{{ eclipse_home }}"
+            remote_src: true
+            extra_opts: [--strip-components=1, --no-same-owner]
+          become: true
+
+        - name: Mark the install as Waco's
+          ansible.builtin.copy:
+            content: "{{ eclipse_version }}\n"
+            dest: "{{ eclipse_home }}/{{ eclipse_marker }}"
+            owner: root
+            group: root
+            mode: "0644"
+          become: true
+
+    - name: Find the package's product plugin
+      ansible.builtin.find:
+        paths: "{{ eclipse_home }}/plugins"
+        patterns: org.eclipse.epp.package.java_*
+        file_type: directory
+      register: eclipse_product
+
+    # The scheduler reads its preferences from the p2 profile, which falls back
+    # to these defaults, so the check stays off unless a user turns it on.
+    - name: Turn off the update check
+      ansible.builtin.lineinfile:
+        path: "{{ (eclipse_product.files | map(attribute='path') | sort | last) ~ '/plugin_customization.ini' }}"
+        regexp: '^org\.eclipse\.equinox\.p2\.ui\.sdk\.scheduler/enabled='
+        line: org.eclipse.equinox.p2.ui.sdk.scheduler/enabled=false
+      become: true
+
+    - name: List the installed plugins
+      ansible.builtin.command:
+        argv: ["{{ eclipse_home }}/eclipse", -nosplash, -application, org.eclipse.equinox.p2.director,
+               -listInstalledRoots]
+      environment:
+        HOME: "{{ eclipse_tmp.path }}"
+      register: eclipse_roots
+      changed_when: false
+      become: true
+      when: eclipse_plugins | length > 0
+
+    - name: Install the missing plugins
+      ansible.builtin.command:
+        argv: ["{{ eclipse_home }}/eclipse", -nosplash, -application, org.eclipse.equinox.p2.director,
+               -repository, "{{ (eclipse_missing | map(attribute='repository') | unique + [eclipse_release_repo]) | join(',') }}",
+               -installIU, "{{ eclipse_missing | map(attribute='iu') | join(',') }}"]
+      environment:
+        HOME: "{{ eclipse_tmp.path }}"
+      vars:
+        eclipse_roots_ius: "{{ eclipse_roots.stdout_lines | map('regex_replace', '/.*', '') }}"
+        eclipse_missing: "{{ eclipse_plugins | rejectattr('iu', 'in', eclipse_roots_ius) }}"
+        eclipse_release_repo: https://download.eclipse.org/releases/{{ eclipse_version }}
+      changed_when: true
+      become: true
+      when: eclipse_plugins | length > 0 and eclipse_missing | length > 0
+
+    - name: Add the launcher
+      ansible.builtin.template:
+        src: eclipse.desktop.j2
+        dest: /usr/share/applications/waco-eclipse-{{ eclipse_version }}.desktop
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    - name: Put eclipse on the PATH
+      ansible.builtin.file:
+        src: "{{ eclipse_home }}/eclipse"
+        dest: /usr/local/bin/eclipse
+        state: link
+        force: true
+      become: true
+
+  always:
+    - name: Remove the temporary directory
+      ansible.builtin.file:
+        path: "{{ eclipse_tmp.path }}"
+        state: absent
+      changed_when: false
+      become: true
+
+- name: Find the other releases installed by Waco
+  ansible.builtin.find:
+    paths: /opt
+    patterns: "{{ eclipse_marker }}"
+    hidden: true
+    recurse: true
+    depth: 2
+  register: eclipse_markers
+
+# Release names sort by date, so the last of the others is the newest.
+# Each one goes with its launcher, /usr/share/applications/waco-eclipse-<release>.desktop.
+- name: Remove the releases that are no longer wanted
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  vars:
+    eclipse_others: "{{ eclipse_markers.files | map(attribute='path') | map('dirname') | reject('eq', eclipse_home) | sort }}"
+    eclipse_unwanted: "{{ eclipse_others[:-1] if eclipse_keep_previous else eclipse_others }}"
+    eclipse_launchers: "{{ eclipse_unwanted | map('basename') | map('regex_replace', '^', '/usr/share/applications/waco-') | map('regex_replace', '$', '.desktop') }}"
+  loop: "{{ eclipse_launchers + eclipse_unwanted }}"
+  become: true

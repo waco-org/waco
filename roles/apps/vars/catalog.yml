@@ -39,6 +39,16 @@ apps_catalog:
         package: nautilus-dropbox
         check: {command: dropbox}
 
+  eclipse:
+    description: Eclipse IDE for Java Developers
+    check: {command: eclipse}
+    sources:
+      default:
+        role: eclipse
+        why: >-
+          eclipse.org's archive, so that the release changes once a year and its plugins with it;
+          Flathub's follows every quarterly release, and its sandbox hides the host's JDKs and tools
+
   grsync:
     description: GUI for rsync
     check: {command: grsync}

@@ -1,0 +1,45 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install the Eclipse IDE for Java Developers from eclipse.org's archives
+    description:
+      - The release is unpacked to /opt/eclipse-<release>, owned by root, with a launcher named
+        Eclipse <release> and /usr/local/bin/eclipse pointing to it. The archive is checked
+        against the SHA-512 that eclipse.org publishes next to it.
+      - Eclipse runs on its bundled JRE. Its update check is off, so the version changes only
+        when eclipse_release does; by default, after each December release.
+      - Installs that Waco did not make are left alone.
+    options:
+      eclipse_release:
+        type: str
+        default: latest
+        description:
+          - The release to install, as YYYY-MM (e.g. 2026-09).
+          - latest means the newest December release, so the install changes once a year.
+            Older releases may not work as well, since plugin sites move on.
+      eclipse_keep_previous:
+        type: bool
+        default: true
+        description:
+          - Keep the most recent of the other releases installed by Waco, as a fallback; older
+            ones are removed.
+          - false removes them all, leaving only eclipse_release.
+      eclipse_plugins:
+        type: list
+        elements: dict
+        default: []
+        description:
+          - Plugins installed with the p2 director when missing. Reruns don't update them.
+          - The release's own repository is always available for dependencies.
+        options:
+          repository:
+            type: str
+            required: true
+            description: The p2 repository (update site) URL.
+          iu:
+            type: str
+            required: true
+            description: The installable unit, usually a feature ending in .feature.group.
