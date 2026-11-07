@@ -9,6 +9,15 @@
   ansible.builtin.include_role:
     name: waco_org.waco.base
 
+- name: Apply the system settings
+  ansible.builtin.include_role:
+    name: waco_org.waco.system
+  vars:
+    system_mdns_firewall: "{{ waco_mdns_firewall }}"
+    system_journal_persistent: "{{ waco_journal_persistent }}"
+    system_journal_max_use: "{{ waco_journal_max_use }}"
+    system_sudoers: "{{ waco_sudoers }}"
+
 - name: Create the users
   ansible.builtin.include_role:
     name: waco_org.waco.users
@@ -36,6 +45,14 @@
     apps_catalog_extra: "{{ waco_apps_catalog_extra }}"
     apps_allow_missing: "{{ waco_apps_allow_missing }}"
   when: waco_apps | length > 0
+
+- name: Set up the print queues
+  ansible.builtin.include_role:
+    name: waco_org.waco.printing
+  vars:
+    printing_queues: "{{ waco_printing_queues }}"
+    printing_queues_absent: "{{ waco_printing_queues_absent }}"
+  when: (waco_printing_queues + waco_printing_queues_absent) | length > 0
 
 - name: Install Docker
   ansible.builtin.include_role:

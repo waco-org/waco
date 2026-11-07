@@ -1,0 +1,23 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: "Check whether the queue exists: {{ printing_queue_name }}"
+  ansible.builtin.command: "/usr/bin/lpstat -v {{ printing_queue_name }}"
+  register: printing_lpstat
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: "Remove the queue: {{ printing_queue_name }}"
+  ansible.builtin.command: "/usr/sbin/lpadmin -x {{ printing_queue_name }}"
+  become: true
+  changed_when: true
+  when: printing_lpstat.rc == 0
+
+- name: "Remove what Waco kept for the queue: {{ printing_queue_name }}"
+  ansible.builtin.file:
+    path: "/etc/waco/cups/{{ printing_queue_name }}.{{ item }}"
+    state: absent
+  become: true
+  loop: [json, ppd]

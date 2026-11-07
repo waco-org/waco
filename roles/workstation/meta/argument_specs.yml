@@ -6,8 +6,8 @@ argument_specs:
   main:
     short_description: Set up a workstation by applying the other Waco roles
     description:
-      - Applies the component roles selected by the waco_has_* variables and the apps in
-        waco_apps, then the per-user settings.
+      - Applies the system settings, the component roles selected by the waco_has_* variables
+        and the apps in waco_apps, then the per-user settings.
       - Variables of the component roles, such as docker_users or virtualbox_release, can be
         set in the inventory and are passed through.
     options:
@@ -15,6 +15,32 @@ argument_specs:
       waco_has_java: {type: bool, default: false, description: "Install the JDKs in java_versions (role java)."}
       waco_has_maven: {type: bool, default: false, description: Install the distro's Maven (role maven).}
       waco_has_python: {type: bool, default: false, description: "Install uv, and the users' Python versions and tools (role python)."}
+      waco_mdns_firewall:
+        type: bool
+        default: true
+        description: Let mDNS through firewalld's default zone, so that printers and scanners are discovered (role system).
+      waco_journal_persistent:
+        type: bool
+        default: true
+        description: Keep the systemd journal across reboots (role system).
+      waco_journal_max_use:
+        type: str
+        description: The most disk space the journal may take, as journald's SystemMaxUse (role system).
+      waco_sudoers:
+        type: list
+        elements: dict
+        default: []
+        description: Sudoers drop-ins, checked with visudo (system_sudoers in role system).
+      waco_printing_queues:
+        type: list
+        elements: dict
+        default: []
+        description: Permanent print queues (printing_queues in role printing).
+      waco_printing_queues_absent:
+        type: list
+        elements: str
+        default: []
+        description: Print queues to remove, by name (role printing).
       waco_apps:
         type: list
         elements: str

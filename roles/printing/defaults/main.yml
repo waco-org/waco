@@ -1,0 +1,17 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Permanent print queues. Discovered driverless printers get temporary queues
+# from CUPS anyway, so these are only needed for a stable name, a default
+# printer, or a printer that needs its own PPD. E.g.:
+# printing_queues:
+#   - name: TR8550
+#     uri: ipp://10.0.0.24/ipp/print
+#     description: Canon TR8550
+#     ppd: files/TR8550.ppd
+#     default: true
+printing_queues: []
+
+# Queues to remove, by name
+printing_queues_absent: []

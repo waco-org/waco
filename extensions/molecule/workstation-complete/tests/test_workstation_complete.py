@@ -70,3 +70,13 @@ def test_rust_user(host):
 def test_python_user(host):
     assert host.file('/home/user/.local/bin/python3.13').exists
     assert host.file('/home/user/.local/bin/tox').exists
+
+
+def test_system(host):
+    config = host.run('systemd-analyze cat-config systemd/journald.conf').stdout
+    assert 'Storage=persistent' in config
+    assert '/usr/bin/true' in host.run('sudo -n -l -U user').stdout
+
+
+def test_printing(host):
+    assert host.run('lpstat -d').stdout.strip().endswith(': waco-test')

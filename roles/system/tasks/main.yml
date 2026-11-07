@@ -1,0 +1,14 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Let mDNS through the firewall
+  ansible.builtin.include_tasks: mdns.yml
+  when: system_mdns_firewall
+
+- name: Configure the journal
+  ansible.builtin.include_tasks: journal.yml
+
+- name: Install the sudoers drop-ins
+  ansible.builtin.include_tasks: sudoers.yml
+  when: system_sudoers | length > 0

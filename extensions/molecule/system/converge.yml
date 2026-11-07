@@ -1,0 +1,58 @@
+---
+# firewalld runs on the Red Hat family, as on a desktop; Ubuntu has none. A
+# sudoers drop-in that visudo refuses must fail the role and leave sudo working.
+- name: Converge
+  hosts: all
+  pre_tasks:
+    - name: Install firewalld (Red Hat family)
+      ansible.builtin.package:
+        name: firewalld
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Start firewalld (Red Hat family)
+      ansible.builtin.systemd_service:
+        name: firewalld
+        state: started
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Create the user of the sudo rule
+      ansible.builtin.user:
+        name: user
+
+    # Only on the first run, so that removing waco-old isn't undone
+    - name: Add the drop-ins made by others
+      ansible.builtin.shell: |
+        echo '# local' > /etc/sudoers.d/local
+        echo '# waco-old' > /etc/sudoers.d/waco-old
+        chmod 0440 /etc/sudoers.d/local /etc/sudoers.d/waco-old
+        touch /var/tmp/waco-sudoers-others
+      args:
+        creates: /var/tmp/waco-sudoers-others
+  vars:
+    system_journal_max_use: 200M
+  roles:
+    - role: waco_org.waco.system
+      vars:
+        system_sudoers:
+          - name: user-true
+            content: |
+              user ALL=(root) NOPASSWD: /usr/bin/true
+          - name: old
+            state: absent
+  post_tasks:
+    - name: Try a drop-in that visudo refuses
+      block:
+        - name: Apply the system role with a broken drop-in
+          ansible.builtin.include_role:
+            name: waco_org.waco.system
+          vars:
+            system_sudoers:
+              - name: broken
+                content: |
+                  user ALL=(root) NOPASSWD /usr/bin/true
+      rescue:
+        - name: Record that the broken drop-in was refused
+          ansible.builtin.copy:
+            content: "refused\n"
+            dest: /var/tmp/waco-sudoers-broken
+            mode: "0644"

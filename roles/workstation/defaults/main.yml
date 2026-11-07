@@ -8,6 +8,18 @@ waco_has_java: false
 waco_has_maven: false
 waco_has_python: false
 
+# System settings (role system): mDNS through firewalld, so that printers and
+# scanners are discovered; a persistent journal, and its size limit (e.g. 1G);
+# sudoers drop-ins, as {name, content} or {name, src}
+waco_mdns_firewall: true
+waco_journal_persistent: true
+waco_journal_max_use:
+waco_sudoers: []
+
+# Permanent print queues, and queues to remove (role printing)
+waco_printing_queues: []
+waco_printing_queues_absent: []
+
 # Apps to install system-wide, by name in the app catalog (roles/apps/vars/catalog.yml)
 waco_apps: []
 

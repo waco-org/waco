@@ -1,0 +1,50 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Check the queues
+  ansible.builtin.assert:
+    that:
+      - printing_queues | map(attribute='name') | select('match', '^[A-Za-z0-9_-]+$') | list | length
+        == printing_queues | length
+      - printing_queues | selectattr('default', 'defined') | selectattr('default') | list | length <= 1
+    fail_msg: Queue names may only have letters, digits, - and _, and at most one queue may be the default.
+    quiet: true
+
+- name: Install CUPS
+  ansible.builtin.package:
+    name: [cups, cups-filters]
+  become: true
+
+- name: Start CUPS
+  ansible.builtin.systemd_service:
+    name: cups
+    state: started
+    enabled: true
+  become: true
+
+- name: Create the directory for the queues' settings
+  ansible.builtin.file:
+    path: /etc/waco/cups
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Set up each queue
+  ansible.builtin.include_tasks: queue.yml
+  loop: "{{ printing_queues }}"
+  loop_control:
+    loop_var: printing_queue
+    label: "{{ printing_queue.name }}"
+
+- name: Set the default printer
+  ansible.builtin.include_tasks: default.yml
+  vars:
+    printing_default: "{{ printing_queues | selectattr('default', 'defined') | selectattr('default') | first }}"
+  when: printing_queues | selectattr('default', 'defined') | selectattr('default') | list | length > 0
+
+- name: Remove the queues no longer wanted
+  ansible.builtin.include_tasks: absent.yml
+  loop: "{{ printing_queues_absent }}"
+  loop_control:
+    loop_var: printing_queue_name

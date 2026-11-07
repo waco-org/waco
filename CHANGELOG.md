@@ -19,6 +19,14 @@
   install changes once a year; the previous release stays as a fallback unless
   `eclipse_keep_previous` is false. `eclipse_plugins` are installed with the p2 director.
   The update check is off.
+- New `system` role, always applied by `workstation`: mDNS through firewalld's default zone
+  (`waco_mdns_firewall`), so that printers and scanners are discovered on the Red Hat family; a
+  persistent journal (`waco_journal_persistent`, `waco_journal_max_use`), as Fedora and Ubuntu
+  already have; sudoers drop-ins (`waco_sudoers`), installed as `/etc/sudoers.d/waco-<name>`
+  only if `visudo` accepts them. The first two are on by default.
+- New `printing` role, applied when `waco_printing_queues` or `waco_printing_queues_absent` is
+  set: permanent CUPS queues, with `lpadmin -m everywhere` or a PPD of their own. A printer
+  that doesn't answer is skipped with a warning, and the next run creates its queue.
 - Tests use ansible-core 2.22, the first release that runs modules on Python 3.15 (Fedora 45).
   It needs Python 3.13 or later on the controller.
 - Breaking: `waco_has_dropbox`, `waco_has_grsync`, `waco_has_packer`, `waco_has_vagrant`,

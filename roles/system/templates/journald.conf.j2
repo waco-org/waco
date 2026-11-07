@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+[Journal]
+{% if system_journal_persistent %}
+Storage=persistent
+{% endif %}
+{% if system_journal_max_use %}
+SystemMaxUse={{ system_journal_max_use }}
+{% endif %}

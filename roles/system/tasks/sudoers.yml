@@ -1,0 +1,47 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Check the sudoers drop-ins
+  ansible.builtin.assert:
+    that:
+      - item.name is match('^[A-Za-z0-9_-]+$')
+      - (item.state | default('present')) == 'absent' or (item.content is defined) != (item.src is defined)
+    fail_msg: >-
+      sudoers drop-in {{ item.name }}: the name may only have letters, digits, - and _,
+      and an installed drop-in needs either content or src
+    quiet: true
+  loop: "{{ system_sudoers }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install sudo
+  ansible.builtin.package:
+    name: sudo
+  become: true
+
+# visudo checks each file before it replaces the old one, so a broken rule
+# never reaches /etc/sudoers.d.
+- name: Install the sudoers drop-ins
+  ansible.builtin.copy:
+    content: "{{ item.content | default(omit) }}"
+    src: "{{ item.src | default(omit) }}"
+    dest: "/etc/sudoers.d/waco-{{ item.name }}"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
+  become: true
+  loop: "{{ system_sudoers | rejectattr('state', 'defined') | list
+            + system_sudoers | selectattr('state', 'defined') | selectattr('state', 'eq', 'present') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Remove the sudoers drop-ins no longer wanted
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/waco-{{ item.name }}"
+    state: absent
+  become: true
+  loop: "{{ system_sudoers | selectattr('state', 'defined') | selectattr('state', 'eq', 'absent') | list }}"
+  loop_control:
+    label: "{{ item.name }}"

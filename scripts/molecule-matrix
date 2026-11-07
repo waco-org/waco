@@ -9,7 +9,7 @@
 #
 #   -d  distribution to test (default: all in extensions/molecule/distros)
 #   -s  scenario to run (default: all in extensions/molecule)
-#   -j  number of runs in parallel (default: 2)
+#   -j  number of runs in parallel (default: the number of cores minus two, at least 1)
 #   -c  Molecule command (default: test)
 #
 # Ansible's home is .cache/ansible, so roles and collections needed by the tests
@@ -26,7 +26,8 @@ logs="$root/.cache/molecule-logs"
 
 distros=()
 scenarios=()
-jobs=2
+# Two cores stay free for the rest of the machine
+jobs=$(( $(nproc) > 3 ? $(nproc) - 2 : 1 ))
 command=test
 
 while getopts "d:s:j:c:h" opt; do

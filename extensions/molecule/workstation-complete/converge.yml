@@ -8,6 +8,16 @@
       - "{{ (ansible_facts['os_family'] == 'RedHat') | ternary('vim-X11', 'vim-gui-common') }}"
     waco_flatpak_apps:
       - org.musicbrainz.Picard
+    waco_sudoers:
+      - name: user-true
+        content: |
+          user ALL=(root) NOPASSWD: /usr/bin/true
+    # A PPD of its own, so that no printer is needed
+    waco_printing_queues:
+      - name: waco-test
+        uri: ipp://192.0.2.1/ipp/print
+        ppd: "{{ playbook_dir }}/../printing/files/test.ppd"
+        default: true
     waco_has_docker: true
     docker_users: ["user"]
     # The test containers can't run the Docker daemon

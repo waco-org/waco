@@ -1,0 +1,11 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# With Storage=persistent, journald creates /var/log/journal when it starts and
+# moves the current boot's journal there.
+- name: Restart journald
+  ansible.builtin.systemd_service:
+    name: systemd-journald
+    state: restarted
+  become: true
