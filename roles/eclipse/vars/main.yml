@@ -1,0 +1,7 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+eclipse_epp_url: https://download.eclipse.org/technology/epp/downloads/release
+eclipse_arch: "{{ ansible_facts['architecture'] }}"
+eclipse_marker: .waco-eclipse

@@ -11,7 +11,9 @@ The `workstation` role applies the other roles, selected by variables in the inv
 
 ```yaml
 # host_vars/myhost.yml
-waco_apps: [vscode, grsync]
+waco_apps: [vscode, grsync, eclipse]
+eclipse_plugins:
+  - {repository: "https://www.pydev.org/updates", iu: org.python.pydev.feature.feature.group}
 waco_has_docker: true
 docker_users: [nick]
 waco_has_java: true
@@ -47,6 +49,7 @@ waco_org.waco.<role>` shows them.
 | `flatpak` | Flathub apps, system-wide or per user |
 | `snap` | snaps (Ubuntu only) |
 | `docker` | Docker CE (via `nmusatti.docker_ce`) and per-user access through the `docker` group, which is root-equivalent |
+| `eclipse` | the Eclipse IDE for Java Developers from eclipse.org: by default the newest December release, plus its predecessor as a fallback; plugins with the p2 director |
 | `java` | JDKs: the distro's OpenJDK where it is packaged and maintained, Eclipse Temurin otherwise; the default JDK and `JAVA_HOME` |
 | `maven` | the distro's Apache Maven; projects needing a specific release use `mvnw` |
 | `hashicorp` | Packer, Vagrant and other packages from HashiCorp's repository |

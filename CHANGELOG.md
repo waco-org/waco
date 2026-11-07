@@ -13,6 +13,12 @@
   OpenJDK where it is packaged and maintained, from Eclipse Temurin (Adoptium's repository)
   otherwise. `java_default` is set with `update-alternatives` in manual mode, and
   `/etc/profile.d/waco-java.sh` sets `JAVA_HOME` from it.
+- New `eclipse` role, app `eclipse` in the catalog: the Eclipse IDE for Java Developers from
+  eclipse.org's archive, checked against its published SHA-512, in `/opt/eclipse-<release>`
+  with a launcher. `eclipse_release` defaults to `latest`, the newest December release, so the
+  install changes once a year; the previous release stays as a fallback unless
+  `eclipse_keep_previous` is false. `eclipse_plugins` are installed with the p2 director.
+  The update check is off.
 - Tests use ansible-core 2.22, the first release that runs modules on Python 3.15 (Fedora 45).
   It needs Python 3.13 or later on the controller.
 - Breaking: `waco_has_dropbox`, `waco_has_grsync`, `waco_has_packer`, `waco_has_vagrant`,

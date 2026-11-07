@@ -8,6 +8,7 @@ scenario passed on that distribution with that source.
 | App | Description | rockylinux10 | rockylinux9 | fedora44 | fedora43 | ubuntu2604 | ubuntu2404 | ubuntu2204 | centos-stream10 | centos-stream9 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `dropbox` | Dropbox client | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | package `nautilus-dropbox` ✓ | package `nautilus-dropbox` ✓ | package `nautilus-dropbox` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ |
+| `eclipse` | Eclipse IDE for Java Developers | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ |
 | `grsync` | GUI for rsync | unavailable ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | unavailable ✓ | package `grsync` ✓ |
 | `packer` | HashiCorp Packer, machine image builder | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ |
 | `simple-scan` | Document scanner | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ |
@@ -18,4 +19,5 @@ scenario passed on that distribution with that source.
 ## Notes
 
 - `dropbox`, `redhat`: not in the distro repos or EPEL, and Dropbox's own RPM repository covers Fedora only
+- `eclipse`, `default`: eclipse.org's archive, so that the release changes once a year and its plugins with it; Flathub's follows every quarterly release, and its sandbox hides the host's JDKs and tools
 - `grsync`, `el10`: neither EL10 nor EPEL 10 has grsync

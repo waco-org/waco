@@ -1,0 +1,75 @@
+---
+# Installs the latest December release with one plugin, next to two fake Waco
+# installs and a hand-made one. The first run keeps the previous release, the
+# second removes it; what the first left is saved for the tests. The seeding
+# and the saving happen only once, so the idempotence run changes nothing.
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Check whether the fake installs were made
+      ansible.builtin.stat:
+        path: /var/tmp/waco-eclipse-seeded
+      register: test_seeded
+
+    - name: Make the fake installs
+      when: not test_seeded.stat.exists
+      block:
+        - name: Make the install directories
+          ansible.builtin.file:
+            path: /opt/eclipse-{{ item }}
+            state: directory
+            mode: "0755"
+          loop: [2020-12, 2021-12, "4.38"]
+
+        - name: Mark the fake installs as Waco's
+          ansible.builtin.copy:
+            content: "{{ item }}\n"
+            dest: /opt/eclipse-{{ item }}/.waco-eclipse
+            mode: "0644"
+          loop: [2020-12, 2021-12]
+
+        - name: Add their launchers
+          ansible.builtin.copy:
+            content: "[Desktop Entry]\nName=Eclipse {{ item }}\n"
+            dest: /usr/share/applications/waco-eclipse-{{ item }}.desktop
+            mode: "0644"
+          loop: [2020-12, 2021-12]
+
+    - name: Install Eclipse, keeping the previous release
+      ansible.builtin.include_role:
+        name: waco_org.waco.eclipse
+      vars:
+        eclipse_plugins:
+          - repository: https://de-jcup.github.io/update-site-eclipse-bash-editor/update-site/
+            iu: de.jcup.basheditor.feature.group
+
+    - name: Save what the first run left
+      when: not test_seeded.stat.exists
+      block:
+        - name: Look for the fake installs
+          ansible.builtin.stat:
+            path: /opt/eclipse-{{ item }}
+          loop: [2020-12, 2021-12]
+          register: test_left
+
+        - name: Save the result
+          ansible.builtin.copy:
+            content: "{{ dict(test_left.results | map(attribute='item') | zip(test_left.results | map(attribute='stat.exists'))) | to_nice_json }}"
+            dest: /var/tmp/waco-eclipse-first.json
+            mode: "0644"
+
+    - name: Install Eclipse again, without the previous release
+      ansible.builtin.include_role:
+        name: waco_org.waco.eclipse
+      vars:
+        eclipse_keep_previous: false
+        eclipse_plugins:
+          - repository: https://de-jcup.github.io/update-site-eclipse-bash-editor/update-site/
+            iu: de.jcup.basheditor.feature.group
+
+    - name: Remember that the fake installs were made
+      ansible.builtin.copy:
+        content: ""
+        dest: /var/tmp/waco-eclipse-seeded
+        mode: "0644"
+      when: not test_seeded.stat.exists
