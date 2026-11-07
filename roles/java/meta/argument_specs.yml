@@ -1,0 +1,22 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install JDKs, from the distro's OpenJDK or Eclipse Temurin
+    description:
+      - Each version comes from the distro's OpenJDK where the distro packages it and keeps it
+        up to date, and from Eclipse Temurin (Adoptium's repository) otherwise. Temurin is used
+        on the Red Hat family only; Ubuntu packages every LTS version.
+      - The default JDK is set with update-alternatives, in manual mode, and
+        /etc/profile.d/waco-java.sh sets JAVA_HOME from it.
+    options:
+      java_versions:
+        type: list
+        elements: int
+        default: []
+        description: Java versions to install, by major version, e.g. [25, 21, 11].
+      java_default:
+        type: int
+        description: The default JDK, which must be in java_versions. The newest of them if not set.

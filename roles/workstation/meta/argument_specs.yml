@@ -12,6 +12,7 @@ argument_specs:
         set in the inventory and are passed through.
     options:
       waco_has_docker: {type: bool, default: false, description: Install Docker CE (role docker).}
+      waco_has_java: {type: bool, default: false, description: "Install the JDKs in java_versions (role java)."}
       waco_has_maven: {type: bool, default: false, description: Install the distro's Maven (role maven).}
       waco_has_python: {type: bool, default: false, description: "Install uv, and the users' Python versions and tools (role python)."}
       waco_apps:

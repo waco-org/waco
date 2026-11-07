@@ -53,6 +53,14 @@ def test_components(host):
     assert host.file('/usr/bin/code').exists
 
 
+# Java 21 is the default although 25 is newer, and stays so after Maven pulls
+# in its own JDK; Maven runs on JAVA_HOME.
+def test_java_default(host):
+    assert 'version "21' in host.run('java -version').stderr
+    assert host.check_output('javac -version').startswith('javac 21')
+    assert 'Java version: 21' in host.check_output("bash -lc 'mvn --version'")
+
+
 def test_rust_user(host):
     f = host.file('/home/user/.cargo/bin/rustc')
     assert f.exists

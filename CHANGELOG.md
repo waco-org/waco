@@ -9,6 +9,10 @@
 - `docs/apps.md`: the app × distribution table, generated from the catalog and the test logs
   by `scripts/apps-table`.
 - `flatpak` works on Ubuntu; new `snap` role (Ubuntu only).
+- New `java` role, selected by `waco_has_java`: the JDKs in `java_versions`, from the distro's
+  OpenJDK where it is packaged and maintained, from Eclipse Temurin (Adoptium's repository)
+  otherwise. `java_default` is set with `update-alternatives` in manual mode, and
+  `/etc/profile.d/waco-java.sh` sets `JAVA_HOME` from it.
 - Tests use ansible-core 2.22, the first release that runs modules on Python 3.15 (Fedora 45).
   It needs Python 3.13 or later on the controller.
 - Breaking: `waco_has_dropbox`, `waco_has_grsync`, `waco_has_packer`, `waco_has_vagrant`,

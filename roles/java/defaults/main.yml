@@ -1,0 +1,10 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Java versions to install, by major version, e.g. [25, 21, 11]
+java_versions: []
+
+# The default JDK, i.e. what java, javac and JAVA_HOME point to; the newest of
+# java_versions if not set
+java_default:

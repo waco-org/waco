@@ -1,0 +1,105 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Install the JDKs
+  when: java_versions | length > 0
+  block:
+    - name: Check that the default is one of the versions
+      ansible.builtin.assert:
+        that: java_default_version | int in java_versions
+        fail_msg: "java_default ({{ java_default }}) is not in java_versions ({{ java_versions | join(', ') }})"
+        quiet: true
+
+    # Each JDK: its version, source, package and home directory
+    - name: Find each JDK's source for {{ java_platform_keys[0] }}
+      ansible.builtin.set_fact:
+        java_jdks: "{{ java_jdks | default([]) + [jdk] }}"
+      vars:
+        java_source: "{{ (item in java_openjdk) | ternary('openjdk', 'temurin') }}"
+        java_rpm_name: "{{ (item == 8) | ternary('1.8.0', item) }}"
+        jdk:
+          version: "{{ item }}"
+          source: "{{ java_source }}"
+          package: >-
+            {{ (java_source == 'temurin') | ternary('temurin-' ~ item ~ '-jdk',
+               (ansible_facts['os_family'] == 'Debian') | ternary('openjdk-' ~ item ~ '-jdk',
+                                                                  'java-' ~ java_rpm_name ~ '-openjdk-devel')) }}
+          home: >-
+            {{ (java_source == 'temurin') | ternary('/usr/lib/jvm/temurin-' ~ item ~ '-jdk',
+               (ansible_facts['os_family'] == 'Debian') | ternary('/usr/lib/jvm/java-' ~ item ~ '-openjdk-' ~ java_deb_arch,
+                                                                  '/usr/lib/jvm/java-' ~ java_rpm_name ~ '-openjdk')) }}
+      loop: "{{ java_versions | map('int') | unique }}"
+
+    - name: Check that Ubuntu has a package for each version
+      ansible.builtin.assert:
+        that: java_jdks | selectattr('source', 'eq', 'temurin') | length == 0
+        fail_msg: >-
+          No OpenJDK package on {{ java_platform_keys[0] }} for Java
+          {{ java_jdks | selectattr('source', 'eq', 'temurin') | map(attribute='version') | join(', ') }}
+        quiet: true
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Show where the JDKs come from
+      ansible.builtin.debug:
+        msg: "Java {{ item.version }}: {{ item.source }} {{ item.package }} ({{ item.home }})"
+      loop: "{{ java_jdks }}"
+      loop_control:
+        label: "{{ item.version }}"
+
+    - name: Add the Adoptium repository (Red Hat family)
+      ansible.builtin.yum_repository:
+        name: adoptium
+        description: Adoptium
+        baseurl: "https://packages.adoptium.net/artifactory/rpm/{{ java_adoptium_rpm_distro }}/{{ ansible_facts['distribution_major_version'] }}/$basearch"
+        gpgkey: https://packages.adoptium.net/artifactory/api/gpg/key/public
+        gpgcheck: true
+      become: true
+      when: java_jdks | selectattr('source', 'eq', 'temurin') | length > 0
+
+    - name: Install the JDKs
+      ansible.builtin.package:
+        name: "{{ java_jdks | map(attribute='package') }}"
+      become: true
+
+    # Temurin registers java with a higher priority than the distro JDKs, so the
+    # alternatives are set by hand. The registered path is found by comparing
+    # real paths, as it differs between distros and packages.
+    - name: Set the default JDK to Java {{ java_default_version }}
+      ansible.builtin.shell:
+        executable: /bin/bash
+        cmd: |
+          set -euo pipefail
+          want=$(readlink -f "{{ java_home }}/bin/{{ item }}")
+          for path in $(update-alternatives --display {{ item }} | sed -n 's#^\(/[^ ]*\) - .*#\1#p'); do
+            if [ "$(readlink -f "$path")" = "$want" ]; then
+              if [ "$(readlink -f /etc/alternatives/{{ item }})" = "$want" ] &&
+                 update-alternatives --display {{ item }} | grep -q manual; then
+                echo unchanged
+              else
+                update-alternatives --set {{ item }} "$path" >/dev/null
+                echo changed
+              fi
+              exit 0
+            fi
+          done
+          echo "no {{ item }} alternative for $want" >&2
+          exit 1
+      vars:
+        java_home: "{{ (java_jdks | selectattr('version', 'eq', java_default_version | int) | first).home }}"
+      register: java_alternative
+      changed_when: java_alternative.stdout == 'changed'
+      become: true
+      loop: [java, javac]
+
+    - name: Set JAVA_HOME from the default javac
+      ansible.builtin.copy:
+        dest: /etc/profile.d/waco-java.sh
+        content: |
+          # Managed by Waco: JAVA_HOME follows the default javac (see update-alternatives).
+          if javac=$(readlink -f /usr/bin/javac); then
+              export JAVA_HOME=${javac%/bin/javac}
+          fi
+          unset javac
+        mode: "0644"
+      become: true

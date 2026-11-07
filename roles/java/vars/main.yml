@@ -1,0 +1,28 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# The OpenJDK versions each platform packages and keeps up to date. The others
+# come from Eclipse Temurin (Adoptium's repository), on the Red Hat family only.
+# Keys as in the app catalog, from the most specific to the least; the first
+# one present wins.
+java_openjdk_versions:
+  ubuntu: [8, 11, 17, 21, 25]
+  # 11 is packaged, but gets no updates since Red Hat ended its support in
+  # October 2024
+  el9: [8, 17, 21, 25]
+  el10: [21, 25]
+  fedora-43: [21, 25]
+  fedora: [25]
+
+# As apps_platform_keys in the apps role
+java_distribution: "{{ {'RedHat': 'rhel'}.get(ansible_facts['distribution'], ansible_facts['distribution'] | lower) }}"
+java_release: "{{ ansible_facts['distribution_version'] if ansible_facts['distribution'] == 'Ubuntu' else ansible_facts['distribution_major_version'] }}"
+java_el: "{{ (ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution'] != 'Fedora') | ternary(['el' ~ ansible_facts['distribution_major_version']], []) }}"
+java_platform_keys: "{{ [java_distribution ~ '-' ~ java_release, java_distribution] + java_el + [ansible_facts['os_family'] | lower, 'default'] }}"
+
+java_openjdk: "{{ java_openjdk_versions[java_platform_keys | select('in', java_openjdk_versions) | first | default('none')] | default([]) }}"
+java_default_version: "{{ java_default or java_versions | max }}"
+java_deb_arch: "{{ {'x86_64': 'amd64', 'aarch64': 'arm64'}.get(ansible_facts['architecture'], ansible_facts['architecture']) }}"
+
+java_adoptium_rpm_distro: "{{ (ansible_facts['distribution'] == 'Fedora') | ternary('fedora', 'rhel') }}"

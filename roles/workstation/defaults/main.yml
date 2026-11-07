@@ -4,6 +4,7 @@
 
 # The components to install
 waco_has_docker: false
+waco_has_java: false
 waco_has_maven: false
 waco_has_python: false
 

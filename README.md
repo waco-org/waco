@@ -14,6 +14,8 @@ The `workstation` role applies the other roles, selected by variables in the inv
 waco_apps: [vscode, grsync]
 waco_has_docker: true
 docker_users: [nick]
+waco_has_java: true
+java_versions: [25, 21, 11]
 waco_packages: [vim-X11]
 waco_users: [nick]
 waco_user_settings:
@@ -45,6 +47,7 @@ waco_org.waco.<role>` shows them.
 | `flatpak` | Flathub apps, system-wide or per user |
 | `snap` | snaps (Ubuntu only) |
 | `docker` | Docker CE (via `nmusatti.docker_ce`) and per-user access through the `docker` group, which is root-equivalent |
+| `java` | JDKs: the distro's OpenJDK where it is packaged and maintained, Eclipse Temurin otherwise; the default JDK and `JAVA_HOME` |
 | `maven` | the distro's Apache Maven; projects needing a specific release use `mvnw` |
 | `hashicorp` | Packer, Vagrant and other packages from HashiCorp's repository |
 | `virtualbox` | Oracle VirtualBox from Oracle's repository |
