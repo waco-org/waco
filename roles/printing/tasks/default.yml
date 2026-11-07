@@ -1,0 +1,26 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Find the default printer
+  ansible.builtin.command: /usr/bin/lpstat -d
+  register: printing_lpstat_default
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+# Only once the queue exists: a skipped one can't be the default yet.
+- name: "Check whether the default queue exists: {{ printing_default.name }}"
+  ansible.builtin.command: "/usr/bin/lpstat -v {{ printing_default.name }}"
+  register: printing_lpstat
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: "Make the queue the default printer: {{ printing_default.name }}"
+  ansible.builtin.command: "/usr/sbin/lpadmin -d {{ printing_default.name }}"
+  become: true
+  changed_when: true
+  when:
+    - printing_lpstat.rc == 0
+    - "printing_lpstat_default.stdout is not search(': ' ~ printing_default.name ~ '$')"

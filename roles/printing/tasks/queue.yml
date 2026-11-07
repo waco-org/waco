@@ -1,0 +1,106 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# /etc/waco/cups/<name>.json records the settings last applied to the queue,
+# written only once lpadmin has succeeded. The queue is configured when it is
+# missing or when the wanted settings differ from that record. The PPD is
+# compared by checksum: CUPS rewrites the PPDs it installs, so comparing
+# against its copy would never settle.
+
+- name: "Check whether the queue exists: {{ printing_queue.name }}"
+  ansible.builtin.command: "/usr/bin/lpstat -v {{ printing_queue.name }}"
+  register: printing_lpstat
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: "Read the settings last applied to the queue: {{ printing_queue.name }}"
+  ansible.builtin.slurp:
+    src: "/etc/waco/cups/{{ printing_queue.name }}.json"
+  register: printing_applied_file
+  failed_when: false
+
+- name: "Compare the settings of the queue: {{ printing_queue.name }}"
+  ansible.builtin.set_fact:
+    printing_wanted:
+      uri: "{{ printing_queue.uri }}"
+      description: "{{ printing_queue.description | default('') }}"
+      location: "{{ printing_queue.location | default('') }}"
+      shared: "{{ printing_queue.shared | default(false) | bool }}"
+      ppd_sha256: "{{ (lookup('ansible.builtin.file', printing_queue.ppd, rstrip=false) | hash('sha256'))
+                      if printing_queue.ppd is defined else '' }}"
+    printing_applied: "{{ (printing_applied_file.content | b64decode | from_json)
+                          if printing_applied_file.content is defined else {} }}"
+
+- name: "Configure the queue: {{ printing_queue.name }}"
+  when: printing_lpstat.rc != 0 or printing_wanted != printing_applied
+  vars:
+    printing_ppd_path: "/etc/waco/cups/{{ printing_queue.name }}.ppd"
+    # A new queue without a PPD, or one going back from a PPD to the printer's own
+    printing_everywhere: >-
+      {{ printing_queue.ppd is not defined
+         and (printing_lpstat.rc != 0 or (printing_applied.ppd_sha256 | default('')) != '') }}
+  block:
+    - name: "Keep the PPD of the queue: {{ printing_queue.name }}"
+      ansible.builtin.copy:
+        src: "{{ printing_queue.ppd }}"
+        dest: "{{ printing_ppd_path }}"
+        mode: "0644"
+      become: true
+      when: printing_queue.ppd is defined
+
+    # -m everywhere asks the printer for its capabilities. A printer that is
+    # off would stall lpadmin, so its port is tried first when the URI has one.
+    - name: "Check that the printer answers: {{ printing_queue.name }}"
+      ansible.builtin.wait_for:
+        host: "{{ printing_queue.uri | urlsplit('hostname') }}"
+        port: "{{ printing_queue.uri | urlsplit('port') or (printing_queue.uri is match('https:') | ternary(443, 631)) }}"
+        timeout: 5
+      register: printing_reachable
+      failed_when: false
+      when:
+        - printing_everywhere | bool
+        - printing_queue.uri is match('(ipps?|https?)://')
+
+    # wait_for reports the port's state only when it answers
+    - name: "Note whether the printer answers: {{ printing_queue.name }}"
+      ansible.builtin.set_fact:
+        printing_answers: "{{ printing_reachable is skipped or printing_reachable.state is defined }}"
+
+    - name: "Create or change the queue: {{ printing_queue.name }}"
+      ansible.builtin.command:
+        argv: >-
+          {{ ['/usr/sbin/lpadmin', '-p', printing_queue.name, '-E', '-v', printing_queue.uri]
+             + (['-P', printing_ppd_path] if printing_queue.ppd is defined else [])
+             + (['-m', 'everywhere'] if printing_everywhere | bool else [])
+             + ['-D', printing_wanted.description, '-L', printing_wanted.location,
+                '-o', 'printer-is-shared=' ~ (printing_wanted.shared | lower)] }}
+      become: true
+      register: printing_lpadmin
+      changed_when: true
+      failed_when: printing_lpadmin.rc != 0 and not printing_everywhere | bool
+      when: printing_answers | bool
+
+    - name: "Warn that the queue was skipped: {{ printing_queue.name }}"
+      ansible.builtin.debug:
+        msg: >-
+          WARNING: queue {{ printing_queue.name }} skipped: the printer at {{ printing_queue.uri }}
+          doesn't answer{% if printing_lpadmin.stderr | default('') %} ({{ printing_lpadmin.stderr }}){% endif %}.
+          Run again with the printer on.
+      when: not printing_answers | bool or (printing_lpadmin.rc | default(0)) != 0
+
+    - name: "Record the settings applied to the queue: {{ printing_queue.name }}"
+      ansible.builtin.copy:
+        content: "{{ printing_wanted | to_nice_json }}\n"
+        dest: "/etc/waco/cups/{{ printing_queue.name }}.json"
+        mode: "0644"
+      become: true
+      when: printing_lpadmin is not skipped and printing_lpadmin.rc == 0
+
+- name: "Remove the PPD the queue no longer uses: {{ printing_queue.name }}"
+  ansible.builtin.file:
+    path: "/etc/waco/cups/{{ printing_queue.name }}.ppd"
+    state: absent
+  become: true
+  when: printing_queue.ppd is not defined

@@ -1,0 +1,24 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Let mDNS through firewalld's default zone, so that printers and scanners are
+# discovered. Only the Red Hat family's default zone blocks it.
+system_mdns_firewall: true
+
+# Keep the systemd journal across reboots, as Fedora and Ubuntu already do
+system_journal_persistent: true
+
+# The most disk space the journal may take, as journald's SystemMaxUse (e.g. 1G);
+# journald's own default if not set
+system_journal_max_use:
+
+# Sudoers drop-ins, each installed as /etc/sudoers.d/waco-<name> after visudo
+# has checked it, e.g.:
+# system_sudoers:
+#   - name: nick-docker-readonly
+#     content: |
+#       nick ALL=(root) NOPASSWD: /usr/bin/docker ps
+#   - name: old-rule
+#     state: absent
+system_sudoers: []

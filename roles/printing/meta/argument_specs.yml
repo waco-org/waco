@@ -1,0 +1,39 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Permanent CUPS print queues
+    description:
+      - Driverless printers that are discovered get temporary queues from CUPS without any of
+        this; their discovery needs mDNS through the firewall (role system).
+      - A queue without a PPD is created with lpadmin -m everywhere, which asks the printer for
+        its capabilities. If the printer doesn't answer, the queue is skipped with a warning and
+        the next run creates it.
+      - Waco keeps each queue's settings in /etc/waco/cups and changes the queue when they
+        change. Changes made to the queue by other means are not undone.
+      - Queues not listed are left alone.
+    options:
+      printing_queues:
+        type: list
+        elements: dict
+        default: []
+        description: The queues.
+        options:
+          name: {type: str, required: true, description: "The queue's name: letters, digits, - and _."}
+          uri: {type: str, required: true, description: "The printer's URI, e.g. ipp://10.0.0.24/ipp/print."}
+          description: {type: str, description: The name that print dialogs show.}
+          location: {type: str, description: Where the printer is.}
+          ppd:
+            type: path
+            description:
+              - A PPD file on the controller, instead of the one CUPS makes with -m everywhere.
+                Installing it doesn't contact the printer.
+          default: {type: bool, default: false, description: Make it the system's default printer. At most one queue may be.}
+          shared: {type: bool, default: false, description: Share it on the network.}
+      printing_queues_absent:
+        type: list
+        elements: str
+        default: []
+        description: Queues to remove, by name.

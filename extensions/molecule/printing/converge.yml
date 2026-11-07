@@ -1,0 +1,50 @@
+---
+# Two queues at an address nobody answers (TEST-NET-1): one with its own PPD,
+# which lpadmin installs without contacting the printer, and one without, which
+# needs the printer and is skipped with a warning. A queue made by hand stays;
+# an old one goes.
+- name: Converge
+  hosts: all
+  pre_tasks:
+    - name: Refresh the package cache
+      ansible.builtin.include_role:
+        name: waco_org.waco.base
+
+    - name: Install CUPS
+      ansible.builtin.package:
+        name: cups
+
+    - name: Start CUPS
+      ansible.builtin.systemd_service:
+        name: cups
+        state: started
+
+    - name: Copy the test PPD
+      ansible.builtin.copy:
+        src: files/test.ppd
+        dest: /var/tmp/waco-test.ppd
+        mode: "0644"
+
+    # Only on the first run, so that removing old isn't undone
+    - name: Add the queues made by hand
+      ansible.builtin.shell: |
+        set -e
+        for q in handmade old; do
+          /usr/sbin/lpadmin -p $q -E -v ipp://192.0.2.2/ipp/print -P /var/tmp/waco-test.ppd
+        done
+        touch /var/tmp/waco-printing-handmade
+      args:
+        creates: /var/tmp/waco-printing-handmade
+  roles:
+    - role: waco_org.waco.printing
+      vars:
+        printing_queues:
+          - name: waco-ppd
+            uri: ipp://192.0.2.1/ipp/print
+            description: Waco test printer
+            location: Nowhere
+            ppd: "{{ playbook_dir }}/files/test.ppd"
+            default: true
+          - name: waco-off
+            uri: ipp://192.0.2.1/ipp/print
+        printing_queues_absent: [old]

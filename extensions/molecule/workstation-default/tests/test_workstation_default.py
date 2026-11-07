@@ -21,3 +21,9 @@ def test_epel_and_crb(host):
 def test_apt_prerequisites(host):
     if host.system_info.distribution == 'ubuntu':
         assert host.package('python3-debian').is_installed
+
+
+def test_journal_persistent(host):
+    """On by default, on every distro."""
+    config = host.run('systemd-analyze cat-config systemd/journald.conf').stdout
+    assert 'Storage=persistent' in config

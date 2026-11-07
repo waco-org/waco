@@ -1,0 +1,48 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: System settings that the distros differ on
+    description:
+      - mDNS through the firewall and a persistent journal, which Fedora and Ubuntu already
+        have and the Red Hat family's other distros lack, and sudoers drop-ins.
+    options:
+      system_mdns_firewall:
+        type: bool
+        default: true
+        description:
+          - Add the mdns service to firewalld's default zone, so that printers and scanners are
+            discovered.
+          - Nothing is done if firewalld isn't installed, as on Ubuntu, whose ufw is left alone.
+      system_journal_persistent:
+        type: bool
+        default: true
+        description:
+          - Keep the systemd journal across reboots (Storage=persistent, in
+            /etc/systemd/journald.conf.d/waco.conf).
+          - false removes that file, leaving the distro's default.
+      system_journal_max_use:
+        type: str
+        description: The most disk space the journal may take, as journald's SystemMaxUse (e.g. 1G).
+      system_sudoers:
+        type: list
+        elements: dict
+        default: []
+        description:
+          - Sudoers drop-ins, installed as /etc/sudoers.d/waco-<name>, mode 0440, only if visudo
+            accepts them.
+          - Drop-ins without the waco- prefix are left alone.
+        options:
+          name:
+            type: str
+            required: true
+            description: The file name after waco-; letters, digits, - and _ only, as sudo skips other names.
+          content: {type: str, description: The rules. Either content or src is required to install the drop-in.}
+          src: {type: path, description: "A file with the rules, on the controller."}
+          state:
+            type: str
+            choices: [present, absent]
+            default: present
+            description: absent removes the drop-in.

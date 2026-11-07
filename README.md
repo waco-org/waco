@@ -19,6 +19,10 @@ docker_users: [nick]
 waco_has_java: true
 java_versions: [25, 21, 11]
 waco_packages: [vim-X11]
+waco_printing_queues:
+  - {name: office, uri: "ipp://10.0.0.24/ipp/print", description: Office printer, default: true}
+waco_sudoers:
+  - {name: nick-true, content: "nick ALL=(root) NOPASSWD: /usr/bin/true\n"}
 waco_users: [nick]
 waco_user_settings:
   nick:
@@ -43,6 +47,8 @@ waco_org.waco.<role>` shows them.
 |------|----------|
 | `workstation` | everything below, as selected by the `waco_*` variables |
 | `base` | EPEL and CodeReady Builder on EL; apt repository prerequisites on Ubuntu |
+| `system` | mDNS through firewalld, so that printers and scanners are discovered; a persistent journal; sudoers drop-ins checked with `visudo`. Fedora and Ubuntu already have the first two |
+| `printing` | permanent CUPS print queues, driverless or with their own PPD; discovered printers get temporary queues without it |
 | `packages` | distro packages |
 | `users` | user accounts |
 | `apps` | the apps in the catalog, each from its source for the platform |

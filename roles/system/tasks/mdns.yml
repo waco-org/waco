@@ -1,0 +1,57 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# firewall-cmd changes the running firewall and its permanent configuration;
+# with firewalld stopped, firewall-offline-cmd changes the permanent one only.
+# Both act on the default zone.
+
+- name: Check whether firewalld is installed
+  ansible.builtin.stat:
+    path: /usr/bin/firewall-offline-cmd
+  register: system_firewalld
+
+- name: Add mDNS to firewalld's default zone
+  when: system_firewalld.stat.exists
+  become: true
+  block:
+    - name: Check whether firewalld is running
+      ansible.builtin.command: /usr/bin/firewall-cmd --state
+      register: system_firewalld_state
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Check whether the default zone allows mDNS (running)
+      ansible.builtin.command: "/usr/bin/firewall-cmd {{ item }} --query-service=mdns"
+      loop: ["", "--permanent"]
+      register: system_mdns_query
+      changed_when: false
+      failed_when: system_mdns_query.rc not in [0, 1]
+      check_mode: false
+      when: system_firewalld_state.rc == 0
+
+    - name: Allow mDNS in the default zone (running)
+      ansible.builtin.command: "/usr/bin/firewall-cmd {{ item.item }} --add-service=mdns"
+      loop: "{{ system_mdns_query.results }}"
+      loop_control:
+        label: "{{ item.item or 'runtime' }}"
+      changed_when: true
+      when:
+        - system_firewalld_state.rc == 0
+        - item.rc == 1
+
+    - name: Check whether the default zone allows mDNS (stopped)
+      ansible.builtin.command: /usr/bin/firewall-offline-cmd --query-service=mdns
+      register: system_mdns_offline
+      changed_when: false
+      failed_when: system_mdns_offline.rc not in [0, 1]
+      check_mode: false
+      when: system_firewalld_state.rc != 0
+
+    - name: Allow mDNS in the default zone (stopped)
+      ansible.builtin.command: /usr/bin/firewall-offline-cmd --add-service=mdns
+      changed_when: true
+      when:
+        - system_firewalld_state.rc != 0
+        - system_mdns_offline.rc == 1
