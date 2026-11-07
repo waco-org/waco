@@ -12,6 +12,9 @@
     docker_users: ["user"]
     # The test containers can't run the Docker daemon
     start_service: false
+    waco_has_java: true
+    java_versions: [21, 25]
+    java_default: 21
     waco_has_maven: true
     waco_has_python: true
     waco_apps: [grsync, packer, vagrant, virtualbox, vscode]

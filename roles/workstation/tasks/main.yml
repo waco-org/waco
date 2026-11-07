@@ -42,6 +42,13 @@
     name: waco_org.waco.docker
   when: waco_has_docker
 
+- name: Install the JDKs
+  ansible.builtin.include_role:
+    name: waco_org.waco.java
+  when: waco_has_java
+
+# The default JDK is set in manual mode, so the one Maven pulls in doesn't
+# replace it.
 - name: Install Maven
   ansible.builtin.include_role:
     name: waco_org.waco.maven

@@ -1,0 +1,15 @@
+---
+# Installs the JDKs that imladris has, and saves how each was resolved for
+# the tests, which check each one from it.
+- name: Converge
+  hosts: all
+  roles:
+    - role: waco_org.waco.java
+      vars:
+        java_versions: [25, 21, 11]
+  post_tasks:
+    - name: Save how the JDKs were resolved
+      ansible.builtin.copy:
+        content: "{{ java_jdks | to_nice_json }}"
+        dest: /var/tmp/waco-java.json
+        mode: "0644"
