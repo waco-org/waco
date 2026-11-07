@@ -9,6 +9,8 @@
 - `docs/apps.md`: the app × distribution table, generated from the catalog and the test logs
   by `scripts/apps-table`.
 - `flatpak` works on Ubuntu; new `snap` role (Ubuntu only).
+- Tests use ansible-core 2.22, the first release that runs modules on Python 3.15 (Fedora 45).
+  It needs Python 3.13 or later on the controller.
 - Breaking: `waco_has_dropbox`, `waco_has_grsync`, `waco_has_packer`, `waco_has_vagrant`,
   `waco_has_virtualbox` and `waco_has_vscode` are replaced by `waco_apps`, and the `dropbox`
   and `grsync` roles by catalog entries.
