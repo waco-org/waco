@@ -54,6 +54,12 @@ apps_catalog:
         role: hashicorp
         vars: {hashicorp_packages: [packer]}
 
+  simple-scan:
+    description: Document scanner
+    check: {command: simple-scan}
+    sources:
+      default: {package: simple-scan}
+
   vagrant:
     description: HashiCorp Vagrant, development environments
     check: {command: vagrant}
