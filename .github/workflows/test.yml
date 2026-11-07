@@ -64,6 +64,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: yamllint .
       - run: ansible-lint
+      - run: scripts/apps-table --check
 
   molecule:
     name: molecule (${{ matrix.distro }})

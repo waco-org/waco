@@ -30,6 +30,7 @@ Apps are named in the app catalog, `roles/apps/vars/catalog.yml`, which says whe
 comes from on each platform: a distro package, a flatpak, a snap or a per-tool role. Only
 flatpaks can be installed per user; a user's other apps are installed system-wide.
 `waco_packages` and `waco_flatpak_apps` remain for anything not in the catalog.
+[docs/apps.md](docs/apps.md) shows the result for each distribution.
 
 Each role documents its variables in `meta/argument_specs.yml`; `ansible-doc -t role
 waco_org.waco.<role>` shows them.
@@ -84,7 +85,11 @@ shared settings are in `.config/molecule/config.yml`. Test images are built by M
 `workstation-complete` applies them all together.
 
 GitHub Actions runs the same script for each distribution and scenario, plus a lint job
-(`yamllint`, `ansible-lint`).
+(`yamllint`, `ansible-lint`, `scripts/apps-table --check`).
+
+After changing the catalog, run the `apps` scenario and then `scripts/apps-table`, which
+regenerates `docs/apps.md` from the catalog and marks each source that the logs in
+`.cache/molecule-logs` show as tested.
 
 ## License
 
