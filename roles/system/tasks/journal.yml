@@ -3,7 +3,12 @@
 # Copyright Nicola Musatti 2026.
 
 # A drop-in rather than creating /var/log/journal, which Storage=auto would
-# also pick up: it states the intent.
+# also pick up: it states the intent. An empty system_journal_max_use is
+# null, so it is tested by length rather than used as a boolean.
+
+- name: Decide whether Waco configures the journal
+  ansible.builtin.set_fact:
+    system_journal_dropin: "{{ system_journal_persistent | bool or (system_journal_max_use | default('', true) | string | length > 0) }}"
 
 - name: Create the journald drop-in directory
   ansible.builtin.file:
@@ -11,7 +16,7 @@
     state: directory
     mode: "0755"
   become: true
-  when: system_journal_persistent or system_journal_max_use
+  when: system_journal_dropin
 
 - name: Configure the journal
   ansible.builtin.template:
@@ -20,7 +25,7 @@
     mode: "0644"
   become: true
   notify: Restart journald
-  when: system_journal_persistent or system_journal_max_use
+  when: system_journal_dropin
 
 - name: Leave the journal to the distro's default
   ansible.builtin.file:
@@ -28,4 +33,4 @@
     state: absent
   become: true
   notify: Restart journald
-  when: not (system_journal_persistent or system_journal_max_use)
+  when: not system_journal_dropin
