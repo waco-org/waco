@@ -56,3 +56,17 @@
             content: "refused\n"
             dest: /var/tmp/waco-sudoers-broken
             mode: "0644"
+
+    # Persistent journal off and no size limit: the drop-in would be removed.
+    # Check mode, so the state the tests look at stays as it is; check mode
+    # reports changes, so the idempotence run skips it.
+    - name: Apply the system role with the journal left to the distro
+      ansible.builtin.include_role:
+        name: waco_org.waco.system
+        apply:
+          check_mode: true
+          tags: [molecule-idempotence-notest]
+      tags: [molecule-idempotence-notest]
+      vars:
+        system_journal_persistent: false
+        system_journal_max_use:
