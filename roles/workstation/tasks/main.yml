@@ -76,8 +76,16 @@
     name: waco_org.waco.python
   when: waco_has_python
 
+- name: Add the users to their groups, now that packages have created them
+  ansible.builtin.include_role:
+    name: waco_org.waco.users
+    tasks_from: groups
+  vars:
+    users_list: "{{ waco_users }}"
+
 - name: Apply the per-user settings
   ansible.builtin.include_tasks: user.yml
-  loop: "{{ waco_users }}"
+  # users_normalized is set by the users role: the entries as dicts
+  loop: "{{ users_normalized | map(attribute='name') | list }}"
   loop_control:
     loop_var: workstation_user

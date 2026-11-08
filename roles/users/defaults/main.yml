@@ -1,6 +1,8 @@
 ---
 # Workstation as Code
-# Copyright Nicola Musatti 2026.
+# Copyright Nicola Musatti 2020 - 2026.
 
-# Users that must exist. New ones are created without a usable password.
+# Users that must exist: names, or dicts with name and optionally uid, gid,
+# groups, admin, shell, comment and create_home (see meta/argument_specs.yml).
+# New users get no usable password; existing ones keep theirs.
 users_list: []

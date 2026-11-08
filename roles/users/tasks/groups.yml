@@ -1,0 +1,47 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Adds the users to their supplementary groups. Run at the end of the
+# workstation role, so that groups created by packages (vboxusers, docker)
+# exist. Memberships are only added, never removed.
+
+- name: Start the normalised user list
+  ansible.builtin.set_fact:
+    users_groups_list: []
+
+- name: Normalise the user list
+  ansible.builtin.set_fact:
+    users_groups_list: "{{ users_groups_list + [(item is mapping) | ternary(item, {'name': item})] }}"
+  loop: "{{ users_list }}"
+  loop_control:
+    label: "{{ item.name | default(item) }}"
+
+- name: Read the groups
+  ansible.builtin.getent:
+    database: group
+
+- name: Check that the groups exist
+  ansible.builtin.assert:
+    that: users_missing | length == 0
+    fail_msg: >-
+      users: {{ item.name }}'s groups don't exist: {{ users_missing | join(', ') }}.
+      They are added at the end of the run, so a package may create them; otherwise create them.
+    quiet: true
+  vars:
+    users_missing: "{{ item.groups | difference(ansible_facts.getent_group.keys()) }}"
+  loop: "{{ users_groups_list | selectattr('groups', 'defined') }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Add the users to their groups
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups }}"
+    append: true
+    # Only the groups: the user module would otherwise create a missing home
+    create_home: false
+  become: true
+  loop: "{{ users_groups_list | selectattr('groups', 'defined') }}"
+  loop_control:
+    label: "{{ item.name }}"

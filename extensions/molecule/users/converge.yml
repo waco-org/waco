@@ -1,0 +1,46 @@
+---
+# Users as names and as dicts; a group that appears only after the users are
+# created, as a package's would; and the three refusals: renumbering a user,
+# taking another user's uid, and a group that doesn't exist.
+- name: Converge
+  hosts: all
+  vars:
+    converge_users:
+      - alice
+      - name: bob
+        uid: 1500
+        gid: 1600
+        admin: true
+        comment: Bob
+        shell: /bin/sh
+        groups: [later]
+      - name: carol
+        create_home: false
+        groups: [adm]
+  tasks:
+    - name: Create the users
+      ansible.builtin.include_role:
+        name: waco_org.waco.users
+      vars:
+        users_list: "{{ converge_users }}"
+
+    - name: Create a group after the users, as a package would
+      ansible.builtin.group:
+        name: later
+
+    - name: Add the users to their groups
+      ansible.builtin.include_role:
+        name: waco_org.waco.users
+        tasks_from: groups
+      vars:
+        users_list: "{{ converge_users }}"
+
+    - name: Try the refusals
+      ansible.builtin.include_tasks: tasks/refuse.yml
+      loop:
+        - {marker: renumber, tasks_from: main, users: [{name: alice, uid: 1777}]}
+        - {marker: uid-taken, tasks_from: main, users: [{name: dave, uid: 1500}]}
+        - {marker: no-group, tasks_from: groups, users: [{name: alice, groups: [nosuchgroup]}]}
+      loop_control:
+        loop_var: refusal
+        label: "{{ refusal.marker }}"

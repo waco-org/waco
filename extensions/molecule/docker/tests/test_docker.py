@@ -25,5 +25,15 @@ def test_docker_access(host):
     assert 'docker' in host.user('user').groups
 
 
-def test_no_docker_user(host):
-    assert not host.user('docker').exists
+def test_docker_account(host):
+    owner = host.run('getent passwd 1000 | cut -d: -f1').stdout.strip()
+    if owner and owner != 'docker':
+        # uid 1000 belongs to someone else, e.g. "ubuntu": no account
+        assert not host.user('docker').exists
+    else:
+        docker = host.user('docker')
+        assert docker.exists
+        assert docker.uid == 1000
+        assert docker.group == 'docker'
+        assert docker.shell == '/usr/sbin/nologin'
+        assert not host.file(docker.home).exists

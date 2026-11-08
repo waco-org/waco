@@ -45,6 +45,23 @@ def test_docker_access(host):
     assert 'docker' in host.user('user').groups
 
 
+def test_user_entry(host):
+    user = host.user('user')
+    assert user.uid == 1001
+    assert user.gid == 1001
+    assert 'vboxusers' in user.groups
+    admin = 'sudo' if host.system_info.distribution == 'ubuntu' else 'wheel'
+    assert admin in user.groups
+
+
+def test_docker_account(host):
+    owner = host.run('getent passwd 1000 | cut -d: -f1').stdout.strip()
+    if owner and owner != 'docker':
+        assert not host.user('docker').exists
+    else:
+        assert host.user('docker').uid == 1000
+
+
 def test_components(host):
     for command in ('docker --version', 'mvn --version', 'packer -version',
                     'vagrant --version', 'vboxmanage --version', 'uv --version'):

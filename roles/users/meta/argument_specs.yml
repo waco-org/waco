@@ -4,12 +4,34 @@
 
 argument_specs:
   main:
-    short_description: Make sure that users exist
+    short_description: Make sure that users exist, with the given uid, gid, shell and admin rights
+    description:
+      - Run groups.yml afterwards for the supplementary groups (the workstation role does so at the end).
     options:
       users_list:
         type: list
-        elements: str
+        elements: raw
         default: []
         description:
-          - Users that must exist.
-          - New ones are created without a usable password; existing ones are left as they are.
+          - Users that must exist, each a name or a dict with these keys
+          - "name: the user's name (required)."
+          - "uid: a fixed uid. If the user exists with another uid, or another user has it, the role
+            fails: it never renumbers accounts."
+          - "gid: the gid of the user's primary group, named after the user. Defaults to uid if that
+            is given, otherwise the distro chooses."
+          - "groups: supplementary groups, added by groups.yml and never removed."
+          - "admin: true adds the user to wheel (Red Hat family) or sudo (Ubuntu)."
+          - "shell: the login shell; new users get /bin/bash if not given."
+          - "comment: the full name or description; create_home: false for no home directory."
+          - New users get no usable password; existing ones keep theirs.
+  groups:
+    short_description: Add the users to their supplementary groups
+    description:
+      - Run after main, once packages have created their groups. A group that still doesn't
+        exist fails the role.
+    options:
+      users_list:
+        type: list
+        elements: raw
+        default: []
+        description: The same list as for main.

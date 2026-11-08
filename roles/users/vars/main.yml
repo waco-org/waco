@@ -1,0 +1,7 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# The group whose members may use sudo
+users_admin_group: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('sudo', 'wheel') }}"
+users_keys: [name, uid, gid, groups, admin, shell, comment, create_home]
