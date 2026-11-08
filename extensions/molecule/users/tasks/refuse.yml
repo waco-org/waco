@@ -1,0 +1,15 @@
+---
+- name: Expect the users role to refuse ({{ refusal.marker }})
+  block:
+    - name: Apply the users role ({{ refusal.marker }})
+      ansible.builtin.include_role:
+        name: waco_org.waco.users
+        tasks_from: "{{ refusal.tasks_from }}"
+      vars:
+        users_list: "{{ refusal.users }}"
+  rescue:
+    - name: Record the refusal ({{ refusal.marker }})
+      ansible.builtin.copy:
+        content: "refused\n"
+        dest: /var/tmp/waco-users-{{ refusal.marker }}
+        mode: "0644"

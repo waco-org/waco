@@ -4,3 +4,10 @@
 
 # Users who may use Docker. Membership of the docker group is root-equivalent.
 docker_users: []
+
+# An account for uid 1000, which many images run as, so that files containers
+# write to bind mounts have an owner name on the host. Primary group docker, no
+# login, no home. Skipped with a warning if another account has the uid. An
+# empty name turns it off.
+docker_account: docker
+docker_account_uid: 1000

@@ -1,0 +1,36 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+- name: Read the accounts
+  ansible.builtin.getent:
+    database: passwd
+
+- name: Find the owner of uid {{ docker_account_uid }}
+  ansible.builtin.set_fact:
+    docker_account_exists: "{{ docker_account in ansible_facts.getent_passwd }}"
+    docker_uid_owner: >-
+      {{ ansible_facts.getent_passwd | dict2items
+         | selectattr('value.1', 'eq', docker_account_uid | string)
+         | map(attribute='key') | first | default('') }}
+
+- name: Warn that the uid is taken, {{ docker_account_uid }}
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: uid {{ docker_account_uid }} belongs to {{ docker_uid_owner }}, so the
+      {{ docker_account }} account isn't created. Files that containers running as
+      uid {{ docker_account_uid }} write to bind mounts will belong to {{ docker_uid_owner }}.
+  when: not docker_account_exists and docker_uid_owner | length > 0
+
+# An existing account is left as it is, whatever its uid.
+- name: Create the account {{ docker_account }}
+  ansible.builtin.user:
+    name: "{{ docker_account }}"
+    uid: "{{ docker_account_uid }}"
+    group: docker
+    shell: /usr/sbin/nologin
+    create_home: false
+    password: '*'
+    comment: Owner of files written by containers running as uid {{ docker_account_uid }}
+  become: true
+  when: not docker_account_exists and docker_uid_owner | length == 0

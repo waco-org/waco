@@ -13,6 +13,16 @@
   OpenJDK where it is packaged and maintained, from Eclipse Temurin (Adoptium's repository)
   otherwise. `java_default` is set with `update-alternatives` in manual mode, and
   `/etc/profile.d/waco-java.sh` sets `JAVA_HOME` from it.
+- `waco_users` entries can be dicts with `uid`, `gid`, `groups`, `admin`, `shell`, `comment` and
+  `create_home`, besides plain names. The primary group is named after the user, with gid `gid`
+  or `uid`; `admin` means `wheel` or `sudo`; new users get bash on every distro. Supplementary
+  groups are added at the end of the run, so groups created by packages (`vboxusers`, `docker`)
+  can be used. Waco never renumbers: an existing user with another uid, or a uid that belongs
+  to someone else, fails the run.
+- The `docker` role creates a `docker` account with uid 1000 (`docker_account`,
+  `docker_account_uid`), which many images run as, so that files containers write to bind
+  mounts have an owner name on the host. It has primary group `docker`, no login and no home,
+  and is skipped with a warning if uid 1000 belongs to someone else.
 - New `eclipse` role, app `eclipse` in the catalog: the Eclipse IDE for Java Developers from
   eclipse.org's archive, checked against its published SHA-512, in `/opt/eclipse-<release>`
   with a launcher. `eclipse_release` defaults to `latest`, the newest December release, so the
@@ -40,7 +50,8 @@
   - Python: uv instead of source builds and shared virtualenvs in `/opt`; no `python` user.
     Per-user Python versions and tools are set in `waco_user_settings`.
   - Maven comes from the distro instead of an upstream archive in `/opt`.
-  - Docker: no `docker` user; `docker_users` are added to the `docker` group.
+  - Docker: `docker_users` are added to the `docker` group. The old `docker` user, which
+    fell back to a random uid when 1000 was taken, is replaced by `docker_account` (see above).
   - The component variables are renamed after their roles (`wavb_release` is now
     `virtualbox_release`, and so on); `waco_install_dir`, `waco_software_dir` and the unused
     `waco_docker_uid`, `wapa_disable_repo`, `wavb_disable_repo` and `wado_compose_version` are

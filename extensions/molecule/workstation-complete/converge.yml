@@ -30,7 +30,10 @@
     waco_apps: [grsync, packer, vagrant, virtualbox, vscode]
     # grsync has no source on EL10
     waco_apps_allow_missing: true
-    waco_users: ["user"]
+    # uid 1001 like a second account, so that the docker account gets 1000;
+    # vboxusers only exists once VirtualBox is installed, later in the run
+    waco_users:
+      - {name: user, uid: 1001, admin: true, groups: [vboxusers]}
     waco_user_settings:
       user:
         has_rust: true

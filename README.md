@@ -11,7 +11,7 @@ The `workstation` role applies the other roles, selected by variables in the inv
 
 ```yaml
 # host_vars/myhost.yml
-waco_apps: [vscode, grsync, eclipse]
+waco_apps: [vscode, grsync, eclipse, virtualbox]
 eclipse_plugins:
   - {repository: "https://www.pydev.org/updates", iu: org.python.pydev.feature.feature.group}
 waco_has_docker: true
@@ -23,7 +23,8 @@ waco_printing_queues:
   - {name: office, uri: "ipp://10.0.0.24/ipp/print", description: Office printer, default: true}
 waco_sudoers:
   - {name: nick-true, content: "nick ALL=(root) NOPASSWD: /usr/bin/true\n"}
-waco_users: [nick]
+waco_users:
+  - {name: nick, uid: 1001, admin: true, groups: [vboxusers]}
 waco_user_settings:
   nick:
     has_rust: true

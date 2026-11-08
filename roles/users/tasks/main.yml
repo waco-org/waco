@@ -2,10 +2,105 @@
 # Workstation as Code
 # Copyright Nicola Musatti 2020 - 2026.
 
+# Creates the users and their primary groups, and sets uid, gid, shell, comment
+# and admin rights. Supplementary groups are added by groups.yml, which the
+# workstation role runs at the end, once packages have created their groups.
+
+- name: Start the normalised user list
+  ansible.builtin.set_fact:
+    users_normalized: []
+
+- name: Normalise the user list
+  ansible.builtin.set_fact:
+    users_normalized: "{{ users_normalized + [(item is mapping) | ternary(item, {'name': item})] }}"
+  loop: "{{ users_list }}"
+  loop_control:
+    label: "{{ item.name | default(item) }}"
+
+- name: Check the user entries
+  ansible.builtin.assert:
+    that:
+      - item.name is defined and item.name is string
+      - item.keys() | difference(users_keys) | length == 0
+      - item.groups is not defined or (item.groups is sequence and item.groups is not string)
+    fail_msg: >-
+      users: bad entry {{ item }}. Allowed keys: {{ users_keys | join(', ') }};
+      groups is a list.
+    quiet: true
+  loop: "{{ users_normalized }}"
+  loop_control:
+    label: "{{ item.name | default(item) }}"
+
+- name: Read the accounts and groups
+  ansible.builtin.getent:
+    database: "{{ item }}"
+  loop: [passwd, group]
+  register: users_getent
+
+- name: Index the accounts and groups
+  ansible.builtin.set_fact:
+    users_passwd: "{{ users_getent.results[0].ansible_facts.getent_passwd }}"
+    users_group: "{{ users_getent.results[1].ansible_facts.getent_group }}"
+
+# usermod -u would only re-own the home directory, and breaks running sessions,
+# so Waco never renumbers.
+- name: Check that no user would be renumbered
+  ansible.builtin.assert:
+    that:
+      - item.uid is not defined or item.name not in users_passwd
+        or users_passwd[item.name][1] | int == item.uid | int
+      - item.uid is not defined or item.name in users_passwd
+        or users_uid_owners | length == 0
+      - users_gid is none or item.name not in users_group
+        or users_group[item.name][1] | int == users_gid | int
+      - users_gid is none or item.name in users_group
+        or users_gid_owners | length == 0
+    fail_msg: >-
+      users: {{ item.name }} needs uid {{ item.uid | default('-') }} and gid {{ users_gid | default('-', true) }}, but
+      {{ ([('the account has uid ' ~ users_passwd[item.name][1] ~ ', gid ' ~ users_passwd[item.name][2])
+           if item.name in users_passwd else '']
+          + [('uid ' ~ item.uid ~ ' belongs to ' ~ users_uid_owners | join(', ')) if users_uid_owners else '']
+          + [('gid ' ~ users_gid ~ ' belongs to group ' ~ users_gid_owners | join(', ')) if users_gid_owners else ''])
+         | select | join('; ') }}.
+      Waco doesn't renumber accounts: fix it by hand (usermod -u, groupmod -g, then re-own the files).
+    quiet: true
+  vars:
+    users_gid: "{{ item.gid | default(item.uid) | default(none) }}"
+    users_uid_owners: >-
+      {{ users_passwd | dict2items | selectattr('value.1', 'eq', item.uid | default('') | string)
+         | map(attribute='key') | reject('eq', item.name) | list }}
+    users_gid_owners: >-
+      {{ users_group | dict2items | selectattr('value.1', 'eq', users_gid | default('', true) | string)
+         | map(attribute='key') | reject('eq', item.name) | list }}
+  loop: "{{ users_normalized }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create the primary groups with a fixed gid
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid | default(item.uid) }}"
+  become: true
+  loop: "{{ users_normalized }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.uid is defined or item.gid is defined
+
+# New users get bash everywhere: Ubuntu's useradd default is /bin/sh. An
+# existing user's shell changes only if one is given.
 - name: Create the users
   ansible.builtin.user:
-    name: "{{ item }}"
+    name: "{{ item.name }}"
+    uid: "{{ item.uid | default(omit) }}"
+    group: "{{ (item.uid is defined or item.gid is defined) | ternary(item.name, omit) }}"
+    shell: "{{ item.shell | default(omit if item.name in users_passwd else '/bin/bash') }}"
+    comment: "{{ item.comment | default(omit) }}"
+    create_home: "{{ item.create_home | default(true) }}"
+    groups: "{{ item.admin | default(false) | ternary([users_admin_group], omit) }}"
+    append: "{{ item.admin | default(false) | ternary(true, omit) }}"
     password: '*'
     update_password: on_create
   become: true
-  loop: "{{ users_list }}"
+  loop: "{{ users_normalized }}"
+  loop_control:
+    label: "{{ item.name }}"

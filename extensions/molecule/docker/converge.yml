@@ -2,9 +2,12 @@
 - name: Converge
   hosts: all
   tasks:
+    # Not uid 1000, which the docker account needs; Ubuntu 24.04 and 26.04 images
+    # already give it to "ubuntu", so the account is skipped there.
     - name: Create the test user
       ansible.builtin.user:
         name: user
+        uid: 1100
 
     - name: Install Docker
       ansible.builtin.include_role:

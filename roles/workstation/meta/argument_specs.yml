@@ -66,9 +66,12 @@ argument_specs:
         description: Flatpak apps to install system-wide, for apps not in the catalog.
       waco_users:
         type: list
-        elements: str
+        elements: raw
         default: []
-        description: Users that must exist. Per-user settings are applied to each of them.
+        description:
+          - Users that must exist, as names or dicts with name, uid, gid, groups, admin, shell, comment
+            and create_home (role users). Per-user settings are applied to each of them.
+          - Supplementary groups are added at the end of the run, once packages have created them.
       waco_user_settings:
         type: dict
         default: {}

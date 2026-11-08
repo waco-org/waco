@@ -16,3 +16,16 @@ argument_specs:
         description:
           - Users added to the docker group. They must already exist.
           - Membership of the docker group is equivalent to root access.
+      docker_account:
+        type: str
+        default: docker
+        description:
+          - An account with uid docker_account_uid and primary group docker, without login or home
+            directory. Many images run as uid 1000, so files that containers write to bind mounts get
+            an owner name on the host.
+          - Not created if another account has the uid (a warning says so); an existing account of
+            this name is left as it is. An empty name turns it off.
+      docker_account_uid:
+        type: int
+        default: 1000
+        description: The uid of docker_account.
