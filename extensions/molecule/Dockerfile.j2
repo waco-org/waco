@@ -23,6 +23,27 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends acl ca-certificates python3 python3-apt sudo systemd systemd-sysv && \
     apt-get clean
 # The package lists are kept, as on a freshly installed system.
+# Where the host kernel has AppArmor (GitHub's runners) but the container has no
+# securityfs, libapparmor's aa_is_enabled() fails and so does every snap hook
+# ("aa_is_enabled() failed unexpectedly"). Make AppArmor look disabled inside the
+# container, as on a host without it; a no-op where the host has no AppArmor.
+RUN printf 'N\n' > /etc/waco-test-apparmor-disabled && \
+    printf '%s\n' \
+      '[Unit]' \
+      'Description=Make AppArmor look disabled in the test container' \
+      'DefaultDependencies=no' \
+      'ConditionPathExists=/sys/module/apparmor/parameters/enabled' \
+      'ConditionPathExists=!/sys/kernel/security/apparmor' \
+      'Before=sysinit.target snapd.service snapd.socket snapd.apparmor.service' \
+      '[Service]' \
+      'Type=oneshot' \
+      'RemainAfterExit=yes' \
+      'ExecStart=/bin/mount --bind /etc/waco-test-apparmor-disabled /sys/module/apparmor/parameters/enabled' \
+      '[Install]' \
+      'WantedBy=sysinit.target' \
+      > /etc/systemd/system/waco-test-no-apparmor.service && \
+    mkdir -p /etc/systemd/system/sysinit.target.wants && \
+    ln -s ../waco-test-no-apparmor.service /etc/systemd/system/sysinit.target.wants/
 {% elif distro.startswith('fedora') %}
 RUN dnf -y install acl python3 python3-libdnf5 sudo systemd && dnf clean all
 {% else %}
