@@ -14,6 +14,9 @@
   EPEL 10 on EL10 too.
 - `virtualbox` ships Oracle's signing key instead of downloading it, since Oracle's server
   often answered 410 Gone. It must be replaced when Oracle rotates the key.
+- `scripts/check-repo-keys`, run weekly by the `repo-keys` workflow, checks that Oracle's
+  repository metadata for every tested distribution verifies with the shipped VirtualBox key,
+  that Oracle still publishes the same key, and that it hasn't expired.
 - New `java` role, selected by `waco_has_java`: the JDKs in `java_versions`, from the distro's
   OpenJDK where it is packaged and maintained, from Eclipse Temurin (Adoptium's repository)
   otherwise. `java_default` is set with `update-alternatives` in manual mode, and
