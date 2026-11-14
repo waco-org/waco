@@ -6,5 +6,5 @@
 flatpak_remote: flathub
 flatpak_remote_url: https://dl.flathub.org/repo/flathub.flatpakrepo
 
-# Apps to install: system-wide with the main entry point, for flatpak_user with the user one
+# Apps to install system-wide
 flatpak_apps: []

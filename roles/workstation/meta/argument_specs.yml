@@ -7,14 +7,15 @@ argument_specs:
     short_description: Set up a workstation by applying the other Waco roles
     description:
       - Applies the system settings, the component roles selected by the waco_has_* variables
-        and the apps in waco_apps, then the per-user settings.
+        and the apps in waco_apps. Everything is installed system-wide; home directories are
+        left to their users.
       - Variables of the component roles, such as docker_users or virtualbox_release, can be
         set in the inventory and are passed through.
     options:
       waco_has_docker: {type: bool, default: false, description: Install Docker CE (role docker).}
       waco_has_java: {type: bool, default: false, description: "Install the JDKs in java_versions (role java)."}
       waco_has_maven: {type: bool, default: false, description: Install the distro's Maven (role maven).}
-      waco_has_python: {type: bool, default: false, description: "Install uv, and the users' Python versions and tools (role python)."}
+      waco_has_python: {type: bool, default: false, description: "Install uv system-wide (role python)."}
       waco_mdns_firewall:
         type: bool
         default: true
@@ -70,20 +71,5 @@ argument_specs:
         default: []
         description:
           - Users that must exist, as names or dicts with name, uid, gid, groups, admin, shell, comment
-            and create_home (role users). Per-user settings are applied to each of them.
+            and create_home (role users).
           - Supplementary groups are added at the end of the run, once packages have created them.
-      waco_user_settings:
-        type: dict
-        default: {}
-        description:
-          - Per-user settings, keyed by user name. Each user's settings are merged over
-            waco_user_defaults.
-      waco_user_defaults:
-        type: dict
-        description: Default per-user settings.
-        options:
-          has_rust: {type: bool, default: false, description: Install Rust with rustup.}
-          apps: {type: list, elements: str, default: [], description: "Apps for the user, by catalog name; only flatpaks are per user."}
-          flatpak_apps: {type: list, elements: str, default: [], description: Flatpak apps for the user.}
-          python_versions: {type: list, elements: str, default: [], description: Python versions to install with uv.}
-          python_tools: {type: list, elements: raw, default: [], description: Tools to install with uv (see the python role).}

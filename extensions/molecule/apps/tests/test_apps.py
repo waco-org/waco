@@ -1,7 +1,6 @@
 import json
 import os
 
-import pytest
 import testinfra.utils.ansible_runner
 
 testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
@@ -12,19 +11,15 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 # The same assertions on every distro: each app is checked as the catalog
 # says, and the catalog says where it is unavailable.
 
-USER_HOME = '/home/user'
-
-COMMAND_DIRS = ['/var/lib/flatpak/exports/bin', '/snap/bin',
-                USER_HOME + '/.local/share/flatpak/exports/bin']
+COMMAND_DIRS = ['/var/lib/flatpak/exports/bin', '/snap/bin']
 
 DESKTOP_DIRS = ['/usr/share/applications',
                 '/var/lib/flatpak/exports/share/applications',
-                '/var/lib/snapd/desktop/applications',
-                USER_HOME + '/.local/share/flatpak/exports/share/applications']
+                '/var/lib/snapd/desktop/applications']
 
 
-def resolved(host, scope):
-    return json.loads(host.file(f'/var/tmp/waco-apps-{scope}.json').content_string)
+def resolved(host):
+    return json.loads(host.file('/var/tmp/waco-apps-system.json').content_string)
 
 
 def is_installed(host, check):
@@ -38,9 +33,8 @@ def is_installed(host, check):
     raise ValueError(f'unknown check {check}')
 
 
-@pytest.mark.parametrize('scope', ['system', 'user'])
-def test_apps(host, scope):
-    apps = resolved(host, scope)
+def test_apps(host):
+    apps = resolved(host)
     assert apps
     for app in apps:
         installed = is_installed(host, app['check'])
@@ -48,12 +42,3 @@ def test_apps(host, scope):
             assert not installed, app['app']
         else:
             assert installed, app['app']
-
-
-def test_user_flatpaks_are_per_user(host):
-    for app in resolved(host, 'user'):
-        if app['kind'] == 'flatpak':
-            f = host.file(f"{USER_HOME}/.local/share/flatpak/app/{app['flatpak']}")
-            assert f.is_directory
-            assert f.user == 'user'
-            assert not host.file(f"/var/lib/flatpak/app/{app['flatpak']}").exists

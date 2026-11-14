@@ -5,7 +5,7 @@
 - App catalog: `waco_apps` names apps, and the new `apps` role installs each one from its
   source for the platform (distro package, flatpak, snap or per-tool role), as recorded in
   `roles/apps/vars/catalog.yml`. An app without a source fails the run unless
-  `waco_apps_allow_missing` is set. Users can have `apps` too.
+  `waco_apps_allow_missing` is set.
 - `docs/apps.md`: the app × distribution table, generated from the catalog and the test logs
   by `scripts/apps-table`.
 - `flatpak` works on Ubuntu; new `snap` role (Ubuntu only).
@@ -37,6 +37,10 @@
 - New `printing` role, applied when `waco_printing_queues` or `waco_printing_queues_absent` is
   set: permanent CUPS queues, with `lpadmin -m everywhere` or a PPD of their own. A printer
   that doesn't answer is skipped with a warning, and the next run creates its queue.
+- Waco no longer installs anything into home directories. Removed: `waco_user_settings` and
+  `waco_user_defaults` (`has_rust`, `apps`, `flatpak_apps`, `python_versions`,
+  `python_tools`), the `rust` role, and the per-user entry points of `apps`, `flatpak` and
+  `python`. The `python` role installs uv only. Apps, flatpaks and uv stay system-wide.
 - Tests use ansible-core 2.22, the first release that runs modules on Python 3.15 (Fedora 45).
   It needs Python 3.13 or later on the controller.
 - Breaking: `waco_has_dropbox`, `waco_has_grsync`, `waco_has_packer`, `waco_has_vagrant`,
@@ -48,7 +52,7 @@
   `workstation` playbook. Variables are validated with `argument_specs`.
 - Breaking changes:
   - Python: uv instead of source builds and shared virtualenvs in `/opt`; no `python` user.
-    Per-user Python versions and tools are set in `waco_user_settings`.
+    Python versions and tools for development are each user's own (see above).
   - Maven comes from the distro instead of an upstream archive in `/opt`.
   - Docker: `docker_users` are added to the `docker` group. The old `docker` user, which
     fell back to a random uid when 1000 was taken, is replaced by `docker_account` (see above).
@@ -58,6 +62,5 @@
     gone.
 - Fixes: Dropbox no longer depends on `waco_flatpak_apps`; grsync is skipped with a warning
   where the distro has none (EL10); vendor repositories use `yum_repository` and
-  `deb822_repository` instead of `yum-config-manager` and `apt_key` (Ubuntu 26.04); Rust uses
-  the user's real home and a private temporary file; CRB is really enabled on EL; no more EL8
+  `deb822_repository` instead of `yum-config-manager` and `apt_key` (Ubuntu 26.04); CRB is really enabled on EL; no more EL8
   and Python 2 code.

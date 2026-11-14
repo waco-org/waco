@@ -25,21 +25,18 @@ waco_sudoers:
   - {name: nick-true, content: "nick ALL=(root) NOPASSWD: /usr/bin/true\n"}
 waco_users:
   - {name: nick, uid: 1001, admin: true, groups: [vboxusers]}
-waco_user_settings:
-  nick:
-    has_rust: true
-    apps: [dropbox]
-    python_versions: ["3.13"]
-    python_tools: [{name: tox, with: [tox-uv]}]
 ```
 
     ansible-playbook -i inventory --ask-become-pass waco_org.waco.workstation
 
 Apps are named in the app catalog, `roles/apps/vars/catalog.yml`, which says where each one
-comes from on each platform: a distro package, a flatpak, a snap or a per-tool role. Only
-flatpaks can be installed per user; a user's other apps are installed system-wide.
+comes from on each platform: a distro package, a flatpak, a snap or a per-tool role.
 `waco_packages` and `waco_flatpak_apps` remain for anything not in the catalog.
 [docs/apps.md](docs/apps.md) shows the result for each distribution.
+
+Waco installs system-wide, for every user of the machine. Apart from creating the accounts,
+it leaves home directories alone: per-user tools such as rustup, uv-managed Pythons or per-user
+flatpaks are for each user to install, or for a home-directory tool.
 
 Each role documents its variables in `meta/argument_specs.yml`; `ansible-doc -t role
 waco_org.waco.<role>` shows them.
@@ -53,7 +50,7 @@ waco_org.waco.<role>` shows them.
 | `packages` | distro packages |
 | `users` | user accounts |
 | `apps` | the apps in the catalog, each from its source for the platform |
-| `flatpak` | Flathub apps, system-wide or per user |
+| `flatpak` | Flathub apps, system-wide |
 | `snap` | snaps (Ubuntu only) |
 | `docker` | Docker CE (via `nmusatti.docker_ce`) and per-user access through the `docker` group, which is root-equivalent |
 | `eclipse` | the Eclipse IDE for Java Developers from eclipse.org: by default the newest December release, plus its predecessor as a fallback; plugins with the p2 director |
@@ -62,10 +59,10 @@ waco_org.waco.<role>` shows them.
 | `hashicorp` | Packer, Vagrant and other packages from HashiCorp's repository |
 | `virtualbox` | Oracle VirtualBox from Oracle's repository |
 | `vscode` | Visual Studio Code from Microsoft's repository |
-| `rust` | Rust via rustup, per user |
-| `python` | uv system-wide; Python versions and tools per user, with uv |
+| `python` | uv system-wide |
 
-The distro Python is left to the system. Python versions for development come from uv.
+The distro Python is left to the system. Python versions for development come from uv, which
+each user runs in their own home.
 
 ## Supported platforms
 

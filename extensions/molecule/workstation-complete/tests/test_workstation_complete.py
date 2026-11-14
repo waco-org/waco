@@ -8,11 +8,7 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 
 
 # Each component has its own scenario; this one checks that the workstation
-# role applies them together, including the per-user settings.
-
-def is_ubuntu(host):
-    return host.system_info.distribution == 'ubuntu'
-
+# role applies them together.
 
 def test_user(host):
     assert host.user('user').exists
@@ -24,21 +20,6 @@ def test_system_package(host):
 
 def test_flatpak_system(host):
     assert host.file('/var/lib/flatpak/app/org.musicbrainz.Picard').is_directory
-
-
-def test_flatpak_user(host):
-    f = host.file('/home/user/.local/share/flatpak/app/org.freac.freac')
-    assert f.is_directory
-    assert f.user == 'user'
-
-
-# The apps scenario checks the catalog in full; here only that the
-# workstation role passes waco_apps and the users' apps on.
-def test_user_app(host):
-    if is_ubuntu(host):
-        assert host.package('nautilus-dropbox').is_installed
-    else:
-        assert host.file('/home/user/.local/share/flatpak/app/com.dropbox.Client').is_directory
 
 
 def test_docker_access(host):
@@ -76,17 +57,6 @@ def test_java_default(host):
     assert 'version "21' in host.run('java -version').stderr
     assert host.check_output('javac -version').startswith('javac 21')
     assert 'Java version: 21' in host.check_output("bash -lc 'mvn --version'")
-
-
-def test_rust_user(host):
-    f = host.file('/home/user/.cargo/bin/rustc')
-    assert f.exists
-    assert f.user == 'user'
-
-
-def test_python_user(host):
-    assert host.file('/home/user/.local/bin/python3.13').exists
-    assert host.file('/home/user/.local/bin/tox').exists
 
 
 def test_system(host):

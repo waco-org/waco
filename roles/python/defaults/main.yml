@@ -4,9 +4,3 @@
 
 # The uv release installed from GitHub where the distro has no uv package
 python_uv_version: 0.13.5
-
-# User entry point: Python versions and tools to install for python_user.
-# A tool is a name, or a dictionary with a name and a list of packages to
-# install with it, e.g. {name: tox, with: [tox-uv]}.
-python_versions: []
-python_tools: []
