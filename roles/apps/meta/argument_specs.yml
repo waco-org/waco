@@ -8,7 +8,7 @@ argument_specs:
     description:
       - Looks up each app's source for the platform in vars/catalog.yml (a distro package,
         a flatpak, a snap or a per-tool role) and installs the apps of each source together.
-    options: &options
+    options:
       apps_list:
         type: list
         elements: str
@@ -24,14 +24,3 @@ argument_specs:
         type: bool
         default: false
         description: Warn instead of failing when an app has no source on the platform.
-  user:
-    short_description: Install apps for one user from the app catalog
-    description:
-      - Only Flatpak installs per user. Apps whose source on the platform is a package, a
-        snap or a role are installed system-wide, with a note.
-    options:
-      <<: *options
-      apps_user:
-        type: str
-        required: true
-        description: The user the apps are installed for.

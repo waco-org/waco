@@ -5,7 +5,7 @@
 argument_specs:
   main:
     short_description: Install flatpak apps system-wide
-    options: &options
+    options:
       flatpak_apps:
         type: list
         elements: str
@@ -19,11 +19,3 @@ argument_specs:
         type: str
         default: https://dl.flathub.org/repo/flathub.flatpakrepo
         description: URL of the remote's .flatpakrepo file.
-  user:
-    short_description: Install flatpak apps for one user
-    options:
-      <<: *options
-      flatpak_user:
-        type: str
-        required: true
-        description: The user the apps are installed for.

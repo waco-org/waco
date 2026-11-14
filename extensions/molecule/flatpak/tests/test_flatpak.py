@@ -12,9 +12,3 @@ def test_flatpak_system(host):
     assert f.is_directory
     assert f.user == 'root'
 
-
-def test_flatpak_user(host):
-    f = host.file('/home/user/.local/share/flatpak/app/org.freac.freac')
-    assert f.is_directory
-    assert f.user == 'user'
-    assert f.group == 'user'

@@ -2,8 +2,8 @@
 # Workstation as Code
 # Copyright Nicola Musatti 2020 - 2026.
 
-# The distro Python serves the system side only. Python versions for
-# development come from uv, per user (see user.yml).
+# The distro Python serves the system side only. Python versions and tools
+# for development come from uv, which each user installs in their own home.
 
 - name: Check whether a uv package is available
   ansible.builtin.command: "{{ (ansible_facts['os_family'] == 'RedHat') | ternary('dnf -q list uv', 'apt-cache show uv') }}"

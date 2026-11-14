@@ -82,10 +82,3 @@
     tasks_from: groups
   vars:
     users_list: "{{ waco_users }}"
-
-- name: Apply the per-user settings
-  ansible.builtin.include_tasks: user.yml
-  # users_normalized is set by the users role: the entries as dicts
-  loop: "{{ users_normalized | map(attribute='name') | list }}"
-  loop_control:
-    loop_var: workstation_user

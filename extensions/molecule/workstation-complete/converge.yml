@@ -34,13 +34,3 @@
     # vboxusers only exists once VirtualBox is installed, later in the run
     waco_users:
       - {name: user, uid: 1001, admin: true, groups: [vboxusers]}
-    waco_user_settings:
-      user:
-        has_rust: true
-        apps: [dropbox]
-        flatpak_apps:
-          - org.freac.freac
-        python_versions: ["3.13"]
-        python_tools:
-          - name: tox
-            with: [tox-uv]

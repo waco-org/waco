@@ -4,6 +4,3 @@
 
 - name: Install flatpak apps system-wide
   ansible.builtin.include_tasks: install.yml
-  vars:
-    flatpak_method: system
-    flatpak_owner: root

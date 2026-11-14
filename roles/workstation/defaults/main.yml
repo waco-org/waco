@@ -35,20 +35,6 @@ waco_packages: []
 # Flatpak apps to install system-wide, for apps not in the catalog
 waco_flatpak_apps: []
 
-# Users that must exist, and their settings. Each user's settings are merged
-# over waco_user_defaults, e.g.:
-# waco_user_settings:
-#   nick:
-#     has_rust: true
-#     apps: [dropbox]
-#     flatpak_apps: [org.freac.freac]
-#     python_versions: ["3.13"]
-#     python_tools: [{name: tox, with: [tox-uv]}]
+# Users that must exist. What goes in their home directories is left to them
+# (or to a home-directory tool).
 waco_users: []
-waco_user_settings: {}
-waco_user_defaults:
-  has_rust: false
-  apps: []
-  flatpak_apps: []
-  python_versions: []
-  python_tools: []

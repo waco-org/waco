@@ -1,6 +1,6 @@
 ---
-# Installs every catalog entry, dropbox for a user and the others system-wide,
-# and saves how each was resolved for the tests, which run each entry's check.
+# Installs every catalog entry and saves how each was resolved for the tests,
+# which run each entry's check.
 - name: Converge
   hosts: all
   tasks:
@@ -9,35 +9,17 @@
         file: "{{ playbook_dir }}/../../../roles/apps/vars/catalog.yml"
         name: test_catalog
 
-    - name: Create the test user
-      ansible.builtin.user:
-        name: user
-
     - name: Install the apps system-wide
       ansible.builtin.include_role:
         name: waco_org.waco.apps
       vars:
-        apps_list: "{{ test_catalog.apps_catalog | list | difference(['dropbox']) | sort }}"
+        apps_list: "{{ test_catalog.apps_catalog | list | sort }}"
         apps_allow_missing: true
 
-    - name: Save how the system-wide apps were resolved
+    - name: Save how the apps were resolved
       ansible.builtin.copy:
         content: "{{ apps_resolved | to_nice_json }}"
         dest: /var/tmp/waco-apps-system.json
-        mode: "0644"
-
-    - name: Install an app for the test user
-      ansible.builtin.include_role:
-        name: waco_org.waco.apps
-        tasks_from: user
-      vars:
-        apps_user: user
-        apps_list: [dropbox]
-
-    - name: Save how the user's apps were resolved
-      ansible.builtin.copy:
-        content: "{{ apps_resolved | to_nice_json }}"
-        dest: /var/tmp/waco-apps-user.json
         mode: "0644"
 
     - name: Ask for an app with no source

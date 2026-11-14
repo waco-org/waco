@@ -16,14 +16,12 @@
       community.general.flatpak_remote:
         name: "{{ flatpak_remote }}"
         flatpakrepo_url: "{{ flatpak_remote_url }}"
-        method: "{{ flatpak_method }}"
+        method: system
       become: true
-      become_user: "{{ flatpak_owner }}"
 
     - name: Install the apps
       community.general.flatpak:
         name: "{{ flatpak_apps }}"
         remote: "{{ flatpak_remote }}"
-        method: "{{ flatpak_method }}"
+        method: system
       become: true
-      become_user: "{{ flatpak_owner }}"
