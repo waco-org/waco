@@ -9,6 +9,11 @@
 - `docs/apps.md`: the app × distribution table, generated from the catalog and the test logs
   by `scripts/apps-table`.
 - `flatpak` works on Ubuntu; new `snap` role (Ubuntu only).
+- Catalog: `gimp` (Flathub on EL10, snap on Ubuntu 22.04 and 24.04, which have GIMP 2.10),
+  `libreoffice` (Flathub on EL, snap on Ubuntu 22.04) and `transmission`. `grsync` comes from
+  EPEL 10 on EL10 too.
+- `virtualbox` ships Oracle's signing key instead of downloading it, since Oracle's server
+  often answered 410 Gone. It must be replaced when Oracle rotates the key.
 - New `java` role, selected by `waco_has_java`: the JDKs in `java_versions`, from the distro's
   OpenJDK where it is packaged and maintained, from Eclipse Temurin (Adoptium's repository)
   otherwise. `java_default` is set with `update-alternatives` in manual mode, and

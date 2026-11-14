@@ -2,12 +2,23 @@
 # Workstation as Code
 # Copyright Nicola Musatti 2020 - 2026.
 
+# Oracle's signing key ships with the role: its download server too often
+# answered 410 Gone. Fingerprint B9F8 D658 297A F3EF C18D 5CDF A2F6 83C5 2980 AECF;
+# replace files/oracle_vbox_2016.asc when Oracle rotates the key.
+- name: Install Oracle's signing key (Red Hat family)
+  ansible.builtin.copy:
+    src: oracle_vbox_2016.asc
+    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle-vbox-2016
+    mode: "0644"
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
 - name: Add the VirtualBox repository (Red Hat family)
   ansible.builtin.yum_repository:
     name: virtualbox
     description: Oracle VirtualBox
     baseurl: "https://download.virtualbox.org/virtualbox/rpm/{{ virtualbox_rpm_distro }}/{{ ansible_facts['distribution_major_version'] }}/$basearch"
-    gpgkey: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle-vbox-2016
     gpgcheck: true
     repo_gpgcheck: true
   become: true
@@ -19,7 +30,7 @@
     uris: https://download.virtualbox.org/virtualbox/debian
     suites: "{{ ansible_facts['distribution_release'] }}"
     components: contrib
-    signed_by: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+    signed_by: "{{ lookup('ansible.builtin.file', 'oracle_vbox_2016.asc') }}"
   become: true
   register: virtualbox_apt_repo
   when: ansible_facts['os_family'] == 'Debian'

@@ -18,10 +18,11 @@
     quiet: true
 
 # Each result is the source, plus the app's name, the platform key that
-# matched, the source's kind and the check that applies.
+# matched, the source's kind, the check that applies and, for snaps, whether
+# the snap is classic (false unless the source says so).
 - name: Find each app's source for {{ apps_platform_keys[0] }}
   ansible.builtin.set_fact:
-    apps_resolved: "{{ apps_resolved + [apps_source | combine({'app': item, 'key': apps_key, 'kinds': apps_found, 'kind': apps_found | first | default('none'), 'check': apps_source.check | default(apps_entry.check)})] }}"
+    apps_resolved: "{{ apps_resolved + [apps_source | combine({'app': item, 'key': apps_key, 'kinds': apps_found, 'kind': apps_found | first | default('none'), 'check': apps_source.check | default(apps_entry.check), 'classic': apps_source.classic | default(false)})] }}"
   vars:
     apps_entry: "{{ apps_catalog_all[item] }}"
     apps_key: "{{ apps_platform_keys | select('in', apps_entry.sources) | first | default('none') }}"

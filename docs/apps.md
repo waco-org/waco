@@ -9,9 +9,12 @@ scenario passed on that distribution with that source.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `dropbox` | Dropbox client | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | package `nautilus-dropbox` ✓ | package `nautilus-dropbox` ✓ | package `nautilus-dropbox` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ |
 | `eclipse` | Eclipse IDE for Java Developers | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ |
-| `grsync` | GUI for rsync | unavailable ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | unavailable ✓ | package `grsync` ✓ |
+| `gimp` | GIMP, image editor | flatpak `org.gimp.GIMP` ✓ | package `gimp` ✓ | package `gimp` ✓ | package `gimp` ✓ | package `gimp` ✓ | snap `gimp` ✓ | snap `gimp` ✓ | flatpak `org.gimp.GIMP` ✓ | package `gimp` ✓ |
+| `grsync` | GUI for rsync | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ |
+| `libreoffice` | LibreOffice office suite | flatpak `org.libreoffice.LibreOffice` ✓ | flatpak `org.libreoffice.LibreOffice` ✓ | package `libreoffice` ✓ | package `libreoffice` ✓ | package `libreoffice` ✓ | package `libreoffice` ✓ | snap `libreoffice` ✓ | flatpak `org.libreoffice.LibreOffice` ✓ | flatpak `org.libreoffice.LibreOffice` ✓ |
 | `packer` | HashiCorp Packer, machine image builder | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ |
 | `simple-scan` | Document scanner | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ | package `simple-scan` ✓ |
+| `transmission` | Transmission, BitTorrent client | package `transmission-gtk` ✓ | package `transmission-gtk` ✓ | package `transmission-gtk` ✓ | package `transmission-gtk` ✓ | package `transmission-gtk` ✓ | package `transmission-gtk` ✓ | package `transmission-gtk` ✓ | package `transmission-gtk` ✓ | package `transmission-gtk` ✓ |
 | `vagrant` | HashiCorp Vagrant, development environments | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ |
 | `virtualbox` | Oracle VirtualBox | role `virtualbox` ✓ | role `virtualbox` ✓ | role `virtualbox` ✓ | role `virtualbox` ✓ | role `virtualbox` ✓ | role `virtualbox` ✓ | role `virtualbox` ✓ | role `virtualbox` ✓ | role `virtualbox` ✓ |
 | `vscode` | Visual Studio Code | role `vscode` ✓ | role `vscode` ✓ | role `vscode` ✓ | role `vscode` ✓ | role `vscode` ✓ | role `vscode` ✓ | role `vscode` ✓ | role `vscode` ✓ | role `vscode` ✓ |
@@ -20,4 +23,9 @@ scenario passed on that distribution with that source.
 
 - `dropbox`, `redhat`: not in the distro repos or EPEL, and Dropbox's own RPM repository covers Fedora only
 - `eclipse`, `default`: eclipse.org's archive, so that the release changes once a year and its plugins with it; Flathub's follows every quarterly release, and its sandbox hides the host's JDKs and tools
-- `grsync`, `el10`: neither EL10 nor EPEL 10 has grsync
+- `gimp`, `el10`: RHEL 10 dropped GIMP, and EPEL 10 doesn't have it
+- `gimp`, `ubuntu-24.04`: the distro has GIMP 2.10, a major release behind; the snap is the GIMP team's
+- `gimp`, `ubuntu-22.04`: the distro has GIMP 2.10, a major release behind; the snap is the GIMP team's
+- `libreoffice`, `el10`: EL9 has LibreOffice 7.1 (2021), far behind; RHEL 10 dropped it
+- `libreoffice`, `el9`: EL9 has LibreOffice 7.1 (2021), far behind; RHEL 10 dropped it
+- `libreoffice`, `ubuntu-22.04`: the distro has LibreOffice 7.3 (2022), far behind; the snap is Canonical's

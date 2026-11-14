@@ -22,15 +22,32 @@
         enabled: true
       become: true
 
-    - name: Install the snaps with strict confinement
-      community.general.snap:
-        name: "{{ snap_apps }}"
-      become: true
-      when: snap_apps | length > 0
+    # community.general.snap reports a failed install without snapd's reason,
+    # so on failure snapd's own record is shown before failing.
+    - name: Install the snaps
+      block:
+        - name: Install the snaps with strict confinement
+          community.general.snap:
+            name: "{{ snap_apps }}"
+          become: true
+          when: snap_apps | length > 0
 
-    - name: Install the snaps with classic confinement
-      community.general.snap:
-        name: "{{ snap_classic_apps }}"
-        classic: true
-      become: true
-      when: snap_classic_apps | length > 0
+        - name: Install the snaps with classic confinement
+          community.general.snap:
+            name: "{{ snap_classic_apps }}"
+            classic: true
+          become: true
+          when: snap_classic_apps | length > 0
+      rescue:
+        - name: Ask snapd what went wrong
+          ansible.builtin.shell: |
+            snap changes
+            snap tasks --last=install
+          register: snap_diagnosis
+          changed_when: false
+          failed_when: false
+          become: true
+
+        - name: Fail with snapd's account of the install
+          ansible.builtin.fail:
+            msg: "{{ ansible_failed_result.msg }}\n{{ snap_diagnosis.stdout }}\n{{ snap_diagnosis.stderr }}"
