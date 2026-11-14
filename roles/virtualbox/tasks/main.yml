@@ -58,6 +58,10 @@
         mode: "0644"
         force: true
       become: true
+      register: virtualbox_key_download
+      retries: 3
+      delay: 10
+      until: virtualbox_key_download is succeeded
 
     - name: Warn that the shipped key is stale
       ansible.builtin.debug:
