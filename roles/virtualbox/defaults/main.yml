@@ -8,3 +8,9 @@ virtualbox_release: "7.2"
 # A specific package version within the release, e.g. to stay on an earlier minor
 # release; empty for the newest
 virtualbox_package_version: ""
+
+# The signing key: the file shipped with the role, tried first, and Oracle's
+# URL, downloaded only if the repository doesn't verify with the shipped one.
+# Change them only to test the fallback.
+virtualbox_key_src: oracle_vbox_2016.asc
+virtualbox_key_url: https://www.virtualbox.org/download/oracle_vbox_2016.asc

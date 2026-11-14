@@ -1,0 +1,9 @@
+---
+# The role is given a key that isn't Oracle's, as if Oracle had rotated its
+# key: the install must fail with it, then succeed with the downloaded one.
+- name: Converge
+  hosts: all
+  roles:
+    - role: waco_org.waco.virtualbox
+      vars:
+        virtualbox_key_src: "{{ playbook_dir }}/wrong-key.asc"

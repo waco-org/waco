@@ -5,3 +5,4 @@
 virtualbox_rpm_distro: "{{ (ansible_facts['distribution'] == 'Fedora') | ternary('fedora', 'el') }}"
 virtualbox_rpm_package: "VirtualBox-{{ virtualbox_release }}{{ (virtualbox_package_version | length > 0) | ternary('-' + virtualbox_package_version, '') }}"
 virtualbox_deb_package: "virtualbox-{{ virtualbox_release }}{{ (virtualbox_package_version | length > 0) | ternary('=' + virtualbox_package_version, '') }}"
+virtualbox_key_path: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('/etc/apt/keyrings/virtualbox.asc', '/etc/pki/rpm-gpg/RPM-GPG-KEY-oracle-vbox-2016') }}"
