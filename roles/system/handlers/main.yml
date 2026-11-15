@@ -2,10 +2,20 @@
 # Workstation as Code
 # Copyright Nicola Musatti 2026.
 
-# With Storage=persistent, journald creates /var/log/journal when it starts and
-# moves the current boot's journal there.
+# With Storage=persistent, journald writes to /var/log/journal only once it has
+# been asked to flush: at boot (systemd-journal-flush.service), or with
+# journalctl --flush. A restart alone leaves it in /run until the next reboot,
+# so the handler flushes too (seen in a Rocky 10 VM, 2026-11-15).
 - name: Restart journald
   ansible.builtin.systemd_service:
     name: systemd-journald
     state: restarted
   become: true
+  listen: Restart journald
+
+- name: Flush the journal to /var/log/journal
+  ansible.builtin.command: journalctl --flush
+  become: true
+  changed_when: true
+  when: system_journal_persistent | bool
+  listen: Restart journald

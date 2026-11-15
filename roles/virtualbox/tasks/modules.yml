@@ -1,0 +1,85 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# VirtualBox's kernel modules (vboxdrv and friends) are built on the machine,
+# by /sbin/vboxconfig, which the package runs once at install, and by
+# vboxdrv.service at boot when the running kernel has none. Both need the
+# compiler and the headers of the running kernel. Without them the install
+# "succeeds" and VirtualBox can't start a VM (seen in a Rocky 10 VM,
+# 2026-11-15), so the role installs them, builds the modules when the running
+# kernel's headers are there, and otherwise says that the next boot will.
+#
+# Fresh installs often run an older kernel than the newest available, whose
+# headers the repositories no longer carry: then the newest headers are
+# installed, for the kernel the next boot runs.
+
+- name: Install the tools to build VirtualBox's kernel modules (Red Hat family)
+  ansible.builtin.dnf:
+    name: [gcc, make, perl, elfutils-libelf-devel]
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install the tools to build VirtualBox's kernel modules (Ubuntu)
+  ansible.builtin.apt:
+    name: [gcc, make, perl]
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Look for the running kernel's headers in the repositories
+  ansible.builtin.command: >-
+    {{ (ansible_facts['os_family'] == 'RedHat')
+       | ternary('dnf -q repoquery ' ~ virtualbox_headers_running, 'apt-cache show ' ~ virtualbox_headers_running) }}
+  register: virtualbox_headers_query
+  changed_when: false
+  failed_when: false
+
+- name: Install the kernel's headers, the running kernel's if available, else the newest
+  ansible.builtin.package:
+    name: >-
+      {{ (virtualbox_headers_query.rc == 0 and virtualbox_headers_query.stdout | length > 0)
+         | ternary(virtualbox_headers_running, virtualbox_headers_newest) }}
+  become: true
+
+- name: Look for the running kernel's build directory
+  ansible.builtin.stat:
+    path: "/lib/modules/{{ ansible_facts['kernel'] }}/build"
+  register: virtualbox_build_dir
+
+- name: Look for VirtualBox's modules for the running kernel
+  ansible.builtin.command: modinfo -k {{ ansible_facts['kernel'] }} vboxdrv
+  register: virtualbox_modinfo
+  changed_when: false
+  failed_when: false
+
+# In a container the kernel is the host's: nothing to build or load there.
+- name: Build VirtualBox's kernel modules
+  ansible.builtin.command: /sbin/vboxconfig
+  become: true
+  register: virtualbox_vboxconfig
+  changed_when: true
+  failed_when: false
+  when:
+    - virtualbox_modinfo.rc != 0
+    - virtualbox_build_dir.stat.exists
+    - not virtualbox_in_container
+
+- name: Fail if VirtualBox's kernel modules couldn't be built
+  ansible.builtin.fail:
+    msg: |
+      /sbin/vboxconfig failed to build VirtualBox's kernel modules for kernel
+      {{ ansible_facts['kernel'] }}; see /var/log/vbox-setup.log.
+      {{ virtualbox_vboxconfig.stdout }}
+  when: virtualbox_vboxconfig is not skipped and virtualbox_vboxconfig.rc != 0
+
+- name: Warn that the modules will be built at the next boot
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: the running kernel ({{ ansible_facts['kernel'] }}) has no headers in the
+      repositories, so VirtualBox's kernel modules can't be built for it. The newest
+      kernel's headers are installed: reboot into the newest kernel and vboxdrv.service
+      builds the modules at boot (a few minutes). Until then VirtualBox can't start VMs.
+  when:
+    - virtualbox_modinfo.rc != 0
+    - not virtualbox_build_dir.stat.exists
+    - not virtualbox_in_container
