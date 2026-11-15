@@ -27,6 +27,10 @@ case $ID in
                 break
             fi
         done
+        # Desktop installs come with firewalld running; Fedora's cloud box
+        # lacks it even after the Workstation group (seen with Fedora 45).
+        dnf install -y -q firewalld
+        systemctl enable --now firewalld
         ;;
 esac
 systemctl set-default graphical.target
