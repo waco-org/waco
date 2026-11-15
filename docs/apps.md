@@ -10,6 +10,7 @@ scenario passed on that distribution with that source.
 | `dropbox` | Dropbox client | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | package `nautilus-dropbox` ✓ | package `nautilus-dropbox` ✓ | package `nautilus-dropbox` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ |
 | `eclipse` | Eclipse IDE for Java Developers | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ |
 | `gimp` | GIMP, image editor | flatpak `org.gimp.GIMP` ✓ | package `gimp` ✓ | package `gimp` ✓ | package `gimp` ✓ | package `gimp` ✓ | snap `gimp` ✓ | snap `gimp` ✓ | flatpak `org.gimp.GIMP` ✓ | package `gimp` ✓ |
+| `go` | Go toolchain | package `golang` ✓ | package `golang` ✓ | package `golang` ✓ | package `golang` ✓ | package `golang-go` ✓ | snap `go` ✓ | snap `go` ✓ | package `golang` ✓ | package `golang` ✓ |
 | `grsync` | GUI for rsync | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ |
 | `libreoffice` | LibreOffice office suite | flatpak `org.libreoffice.LibreOffice` ✓ | flatpak `org.libreoffice.LibreOffice` ✓ | package `libreoffice` ✓ | package `libreoffice` ✓ | package `libreoffice` ✓ | package `libreoffice` ✓ | snap `libreoffice` ✓ | flatpak `org.libreoffice.LibreOffice` ✓ | flatpak `org.libreoffice.LibreOffice` ✓ |
 | `packer` | HashiCorp Packer, machine image builder | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ | role `hashicorp` ✓ |
@@ -26,6 +27,8 @@ scenario passed on that distribution with that source.
 - `gimp`, `el10`: RHEL 10 dropped GIMP, and EPEL 10 doesn't have it
 - `gimp`, `ubuntu-24.04`: the distro has GIMP 2.10, a major release behind; the snap is the GIMP team's
 - `gimp`, `ubuntu-22.04`: the distro has GIMP 2.10, a major release behind; the snap is the GIMP team's
+- `go`, `ubuntu-24.04`: the distro has Go 1.18 (22.04) or 1.22 (24.04), far behind; the snap is Canonical's
+- `go`, `ubuntu-22.04`: the distro has Go 1.18 (22.04) or 1.22 (24.04), far behind; the snap is Canonical's
 - `libreoffice`, `el10`: EL9 has LibreOffice 7.1 (2021), far behind; RHEL 10 dropped it
 - `libreoffice`, `el9`: EL9 has LibreOffice 7.1 (2021), far behind; RHEL 10 dropped it
 - `libreoffice`, `ubuntu-22.04`: the distro has LibreOffice 7.3 (2022), far behind; the snap is Canonical's
