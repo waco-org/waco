@@ -60,6 +60,7 @@ waco_org.waco.<role>` shows them.
 | `virtualbox` | Oracle VirtualBox from Oracle's repository |
 | `vscode` | Visual Studio Code from Microsoft's repository |
 | `python` | uv system-wide |
+| `hiwthi` | the tools that Hiwthi, which sets up home directories, calls: age, mise (from its repository), uv; Hiwthi itself once released. Waco never runs it |
 
 The distro Python is left to the system. Python versions for development come from uv, which
 each user runs in their own home.

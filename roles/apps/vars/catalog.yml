@@ -63,6 +63,18 @@ apps_catalog:
         why: the distro has GIMP 2.10, a major release behind; the snap is the GIMP team's
       ubuntu-24.04: *gimp_snap
 
+  go:
+    description: Go toolchain
+    check: {command: go}
+    sources:
+      default: {package: golang}
+      ubuntu: {package: golang-go}
+      ubuntu-22.04: &go_snap
+        snap: go
+        classic: true
+        why: the distro has Go 1.18 (22.04) or 1.22 (24.04), far behind; the snap is Canonical's
+      ubuntu-24.04: *go_snap
+
   grsync:
     description: GUI for rsync
     check: {command: grsync}

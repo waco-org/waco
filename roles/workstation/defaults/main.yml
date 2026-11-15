@@ -7,6 +7,7 @@ waco_has_docker: false
 waco_has_java: false
 waco_has_maven: false
 waco_has_python: false
+waco_has_hiwthi: false
 
 # System settings (role system): mDNS through firewalld, so that printers and
 # scanners are discovered; a persistent journal, and its size limit (e.g. 1G);

@@ -45,7 +45,8 @@ def test_docker_account(host):
 
 def test_components(host):
     for command in ('docker --version', 'mvn --version', 'packer -version',
-                    'vagrant --version', 'vboxmanage --version', 'uv --version'):
+                    'vagrant --version', 'vboxmanage --version', 'uv --version',
+                    'age --version', 'mise --version'):
         assert host.run(command).rc == 0, command
     # code refuses to run as root
     assert host.file('/usr/bin/code').exists

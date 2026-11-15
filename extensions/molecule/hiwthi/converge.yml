@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Install the tools Hiwthi calls
+      ansible.builtin.include_role:
+        name: waco_org.waco.hiwthi

@@ -1,0 +1,58 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Hiwthi looks for these in PATH and downloads its own copy into the home only
+# where one is missing.
+
+- name: Install age
+  ansible.builtin.package:
+    name: age
+  become: true
+
+# mise isn't packaged by any distro or EPEL: its vendor repositories, as the
+# software policy's next choice.
+- name: Add the mise repository (Red Hat family)
+  ansible.builtin.yum_repository:
+    name: mise
+    description: mise
+    baseurl: "{{ hiwthi_mise_rpm_url }}"
+    gpgkey: "{{ hiwthi_mise_key_url }}"
+    gpgcheck: true
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Add the mise repository (Ubuntu)
+  ansible.builtin.deb822_repository:
+    name: mise
+    uris: "{{ hiwthi_mise_deb_url }}"
+    suites: stable
+    components: main
+    architectures: [amd64, arm64]
+    signed_by: "{{ hiwthi_mise_key_url }}"
+  become: true
+  register: hiwthi_mise_apt_repo
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install mise (Red Hat family)
+  ansible.builtin.dnf:
+    name: mise
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install mise (Ubuntu)
+  ansible.builtin.apt:
+    name: mise
+    update_cache: "{{ hiwthi_mise_apt_repo is changed }}"
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+# Hiwthi has no release yet. Its install, like uv's (role python,
+# uv-release.yml), waits for the release format: see waco-conversation
+# phase4-status.md.
+- name: Fail if a Hiwthi release is asked for
+  ansible.builtin.fail:
+    msg: >-
+      hiwthi_version is {{ hiwthi_version }}, but this collection can't install Hiwthi
+      releases yet: leave hiwthi_version empty.
+  when: hiwthi_version | length > 0

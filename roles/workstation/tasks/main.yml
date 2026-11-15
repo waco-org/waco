@@ -76,6 +76,11 @@
     name: waco_org.waco.python
   when: waco_has_python
 
+- name: Install Hiwthi's tools
+  ansible.builtin.include_role:
+    name: waco_org.waco.hiwthi
+  when: waco_has_hiwthi
+
 - name: Add the users to their groups, now that packages have created them
   ansible.builtin.include_role:
     name: waco_org.waco.users

@@ -27,6 +27,7 @@
     java_default: 21
     waco_has_maven: true
     waco_has_python: true
+    waco_has_hiwthi: true
     waco_apps: [grsync, packer, vagrant, virtualbox, vscode]
     # uid 1001 like a second account, so that the docker account gets 1000;
     # vboxusers only exists once VirtualBox is installed, later in the run

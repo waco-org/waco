@@ -1,0 +1,8 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# base enables EPEL (age on EL); python installs uv, which Hiwthi calls.
+dependencies:
+  - role: waco_org.waco.base
+  - role: waco_org.waco.python
