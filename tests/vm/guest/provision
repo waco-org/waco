@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# provision - run waco-provision with the collection under test. Runs as
+# vagrant; waco-provision hands over to the waco account.
+#
+# The collection comes from /tmp/waco-upload/waco.bundle (see ../run), cloned
+# where waco can read it. WACO_VM_EXCLUDE_APPS, a JSON list from boxes.yml,
+# names apps this distro can't install yet.
+
+set -euo pipefail
+
+coll=/var/tmp/waco-collection
+rm -rf "$coll"
+git clone -q /tmp/waco-upload/waco.bundle "$coll"
+chmod -R a+rX "$coll"
+git -C "$coll" log --oneline -1
+
+cd ~/.waco
+./waco-provision -s "$coll" -- -e "{\"waco_vm_exclude_apps\": ${WACO_VM_EXCLUDE_APPS:-[]}}"

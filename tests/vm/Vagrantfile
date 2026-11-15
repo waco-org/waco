@@ -1,0 +1,66 @@
+# -*- mode: ruby -*-
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+#
+# Waco's VM tier: one machine per entry in boxes.yml, none started by default.
+# Use ./run, which adds the box, prepares what the provisioners upload and sets
+# VAGRANT_EXPERIMENTAL; see README.md.
+
+require "yaml"
+
+BOXES = YAML.load_file(File.join(__dir__, "boxes.yml"))
+CACHE = File.join(__dir__, ".cache")
+DESKTOP = ENV.fetch("WACO_VM_DESKTOP", "yes") == "yes"
+
+# The vagrant user for boxes made from cloud images, with Vagrant's insecure
+# keys; Vagrant replaces them with a key of its own on the first "up".
+INSECURE_KEYS = %w[vagrant.pub.ed25519 vagrant.pub.rsa].map do |k|
+  File.read(Vagrant.source_root.join("keys", k)).strip
+end
+CLOUD_CONFIG = <<~CLOUD
+  #cloud-config
+  users:
+    - name: vagrant
+      sudo: "ALL=(ALL) NOPASSWD:ALL"
+      shell: /bin/bash
+      lock_passwd: true
+      ssh_authorized_keys: #{INSECURE_KEYS.to_json}
+CLOUD
+
+Vagrant.configure("2") do |config|
+  # No guest additions in the boxes; files go up with the file provisioner.
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  BOXES.each do |name, box|
+    config.vm.define name, autostart: false do |m|
+      m.vm.box = box["box"]
+      m.vm.hostname = "waco-#{name}"
+      # Room for a desktop; the "disk" provisioner grows the root file system.
+      m.vm.disk :disk, size: "40GB", primary: true
+
+      if box["format"] == "ova"
+        m.vm.cloud_init content_type: "text/cloud-config", inline: CLOUD_CONFIG
+      end
+
+      m.vm.provider "virtualbox" do |vb|
+        vb.name = "waco-#{name}"
+        vb.cpus = 2
+        vb.memory = 6144
+        vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga", "--vram", "64"]
+        if box["format"] == "ova"
+          # Ubuntu's cloud images expect a serial console; without one the
+          # boot stalls.
+          vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4", "--uartmode1", "disconnected"]
+        end
+      end
+
+      m.vm.provision "disk", type: "shell", path: "guest/grow-root"
+      m.vm.provision "desktop", type: "shell", path: "guest/desktop" if DESKTOP
+      m.vm.provision "upload", type: "file", source: "#{CACHE}/upload", destination: "/tmp/waco-upload"
+      m.vm.provision "bootstrap", type: "shell", privileged: false, path: "guest/bootstrap"
+      m.vm.provision "provision", type: "shell", privileged: false, path: "guest/provision",
+        env: { "WACO_VM_EXCLUDE_APPS" => (box["exclude_apps"] || []).to_json }
+      m.vm.provision "check", type: "shell", path: "guest/check"
+    end
+  end
+end

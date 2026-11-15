@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# desktop - install the distro's GNOME workstation, so that the run looks like
+# a desktop install. Waco itself doesn't install a desktop. Runs as root.
+
+set -euo pipefail
+
+# shellcheck source=/dev/null
+. /etc/os-release
+case $ID in
+    ubuntu)
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -qq
+        apt-get install -y -qq ubuntu-desktop-minimal >/dev/null
+        ;;
+    *)
+        # Fedora and EL10 call it "Workstation"; EL9 only has "Server with GUI".
+        dnf install -y -q @^workstation-product-environment ||
+            dnf install -y -q @^graphical-server-environment
+        ;;
+esac
+systemctl set-default graphical.target
+systemctl isolate graphical.target
