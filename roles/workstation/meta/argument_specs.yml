@@ -16,6 +16,7 @@ argument_specs:
       waco_has_java: {type: bool, default: false, description: "Install the JDKs in java_versions (role java)."}
       waco_has_maven: {type: bool, default: false, description: Install the distro's Maven (role maven).}
       waco_has_python: {type: bool, default: false, description: "Install uv system-wide (role python)."}
+      waco_has_hiwthi: {type: bool, default: false, description: "Install the tools Hiwthi calls, system-wide: age, mise, uv (role hiwthi)."}
       waco_mdns_firewall:
         type: bool
         default: true

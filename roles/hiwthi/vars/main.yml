@@ -1,0 +1,9 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# mise's repositories, signed by key 24853EC9F655CE80B48E6C3A8B81C9D17413A06D
+# (mise releases <release@mise.jdx.dev>, expires 2028-01-02)
+hiwthi_mise_rpm_url: https://mise.jdx.dev/rpm
+hiwthi_mise_deb_url: https://mise.jdx.dev/deb
+hiwthi_mise_key_url: https://mise.jdx.dev/gpg-key.pub

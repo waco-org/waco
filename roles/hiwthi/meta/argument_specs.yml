@@ -1,0 +1,22 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+argument_specs:
+  main:
+    short_description: Install Hiwthi and the tools it calls, system-wide
+    description:
+      - Hiwthi sets up home directories; each user runs it. Waco only installs it and the
+        tools it calls, and never runs it.
+      - age from the distro (EPEL on EL), mise from its vendor repositories, uv through the
+        python role. Flatpak and the GNOME extension packages, which Hiwthi also calls, are
+        installed by their own roles.
+      - The Hiwthi executable itself, a pinned release, is not installed yet, since Hiwthi has
+        no release so far.
+    options:
+      hiwthi_version:
+        type: str
+        default: ""
+        description:
+          - The Hiwthi release to install into /usr/local/bin. Empty installs only the tools
+            Hiwthi calls; for now it must stay empty.

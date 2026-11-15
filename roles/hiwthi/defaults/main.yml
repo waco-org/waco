@@ -1,0 +1,7 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# The Hiwthi release installed into /usr/local/bin; empty until Hiwthi's first
+# release
+hiwthi_version: ""
