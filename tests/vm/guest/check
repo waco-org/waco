@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# check - after a run, check what the container scenarios can't: services
+# really running, kernel modules, SELinux/AppArmor, the firewall. Runs as root,
+# after the Waco run and again after a reboot (WACO_VM_REBOOTED=yes).
+# Reports every check, then fails if any did.
+
+set -uo pipefail
+
+# shellcheck source=/dev/null
+. /etc/os-release
+failed=0
+ok() { echo "ok:   $*"; }
+bad() { echo "FAIL: $*"; failed=1; }
+check() { local what=$1; shift; if "$@" >/dev/null 2>&1; then ok "$what"; else bad "$what"; fi; }
+
+state=$(systemctl is-system-running)
+if [ "$state" = running ]; then ok "system running"; else bad "system $state:"; systemctl --failed --no-legend; fi
+check "graphical target is the default" test "$(systemctl get-default)" = graphical.target
+# The desktop step sets the default target itself: the display manager shows
+# that a desktop really is there.
+check "display manager running" systemctl is-active display-manager
+
+if [ "$ID" = ubuntu ]; then
+    check "AppArmor enabled" aa-status --enabled
+else
+    check "SELinux enforcing" test "$(getenforce)" = Enforcing
+    check "mDNS allowed by firewalld" sh -c 'firewall-cmd --list-services | grep -qw mdns'
+fi
+
+check "waco account, password locked" sh -c "getent shadow waco | cut -d: -f2 | grep -q '^[!*]'"
+check "journal persistent" test -d /var/log/journal
+if [ "${WACO_VM_REBOOTED:-no}" = yes ]; then
+    # After the final reboot: the journal kept the boot of the Waco run
+    # shellcheck disable=SC2016 # expanded by the inner sh
+    check "journal kept the previous boot" sh -c '[ "$(journalctl --list-boots -q | wc -l)" -ge 2 ]'
+fi
+check "Docker daemon active" systemctl is-active docker
+check "docker info as vagrant" sudo -u vagrant docker info
+check "CUPS active" systemctl is-active cups
+check "print queue waco-test" lpstat -p waco-test
+check "Flatpak app installed" flatpak info org.musicbrainz.Picard
+
+for cmd in grsync code java mvn uv; do
+    check "command $cmd (vagrant's login shell)" sudo -iu vagrant sh -c "command -v $cmd"
+done
+if command -v VBoxManage >/dev/null; then
+    check "vboxdrv module loaded" sh -c 'lsmod | grep -qw vboxdrv'
+fi
+
+exit $failed

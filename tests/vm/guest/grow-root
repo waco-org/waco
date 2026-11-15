@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# grow-root - grow the root file system to fill the disk, which the Vagrantfile
+# enlarges beyond the box's size. Handles a plain partition (xfs, ext4, btrfs)
+# and LVM. Runs as root.
+
+set -euo pipefail
+
+# shellcheck source=/dev/null
+. /etc/os-release
+if ! command -v growpart >/dev/null; then
+    case $ID in
+        ubuntu) apt-get install -y -qq cloud-guest-utils >/dev/null ;;
+        *) dnf install -y -q cloud-utils-growpart >/dev/null ;;
+    esac
+fi
+
+src=$(findmnt -no SOURCE /)
+src=${src%%\[*}              # btrfs: /dev/sda4[/root]
+fstype=$(findmnt -no FSTYPE /)
+lv=
+if [ "$(lsblk -no TYPE "$src")" = lvm ]; then
+    lv=$src
+    src=$(pvs --noheadings -o pv_name -S vg_name="$(lvs --noheadings -o vg_name "$lv" | tr -d ' ')" | head -1 | tr -d ' ')
+fi
+
+disk=/dev/$(lsblk -no PKNAME "$src")
+part=$(cat "/sys/class/block/$(basename "$src")/partition")
+# Exit 1 with NOCHANGE means there's nothing to grow.
+growpart "$disk" "$part" || [ $? -eq 1 ]
+
+if [ -n "$lv" ]; then
+    pvresize "$src"
+    lvextend -r -l +100%FREE "$lv" || true
+else
+    case $fstype in
+        xfs) xfs_growfs / ;;
+        ext4) resize2fs "$src" ;;
+        btrfs) btrfs filesystem resize max / ;;
+        *) echo "grow-root: don't know how to grow $fstype" >&2; exit 1 ;;
+    esac
+fi
+df -h /

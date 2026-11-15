@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# run - a VM test run: add the box; bring the machine up (disk, update,
+# desktop) and reboot; run Waco (upload, bootstrap, provision) and check; reboot
+# and check again; take a screenshot; destroy the VM.
+#
+# Usage: tests/vm/run [-k] MACHINE
+#
+#   -k  keep the VM afterwards (vagrant ssh MACHINE, vagrant destroy MACHINE)
+#
+# What gets tested is the committed state (HEAD) of this collection checkout
+# and of the waco-bootstrap clone in $WACO_BOOTSTRAP (default: the
+# waco-bootstrap checkout next to this one). WACO_VM_DESKTOP=no skips the
+# desktop. Logs and screenshots go to tests/vm/out/.
+
+set -euo pipefail
+
+here=$(cd "$(dirname "$0")" && pwd)
+keep=
+while getopts k opt; do
+    case $opt in
+        k) keep=yes ;;
+        *) exit 2 ;;
+    esac
+done
+shift $((OPTIND - 1))
+machine=${1:?usage: run [-k] MACHINE}
+
+coll=$(git -C "$here" rev-parse --show-toplevel)
+bootstrap=${WACO_BOOTSTRAP:-$(dirname "$coll")/waco-bootstrap}
+stamp=$(date +%Y%m%d-%H%M%S)
+out=$here/out
+mkdir -p "$out"
+log=$out/$machine-$stamp.log
+
+"$here/add-box" "$machine"
+
+# What the provisioners upload: bundles of the committed state, and the test
+# settings with their links resolved.
+up=$here/.cache/upload
+rm -rf "$up"
+mkdir -p "$up"
+for repo in "$coll" "$bootstrap"; do
+    if [ -n "$(git -C "$repo" status --porcelain)" ]; then
+        echo "run: $repo has uncommitted changes, which aren't tested" >&2
+    fi
+done
+git -C "$coll" bundle create -q "$up/waco.bundle" HEAD
+git -C "$bootstrap" bundle create -q "$up/waco-bootstrap.bundle" HEAD
+cp -RL "$here/overlay" "$up/overlay"
+
+cd "$here"
+export VAGRANT_EXPERIMENTAL=cloud_init,disks
+status=0
+{
+    echo "== $machine: waco $(git -C "$coll" rev-parse --short HEAD), waco-bootstrap $(git -C "$bootstrap" rev-parse --short HEAD)"
+    # Up to date and rebooted before Waco runs, as after an install; then the
+    # Waco run and the checks; then a reboot and the checks again, for what
+    # must survive one (persistent journal, modules built at boot, services).
+    vagrant up --provision-with disk,update,desktop "$machine" &&
+        vagrant reload "$machine" &&
+        vagrant provision --provision-with upload,bootstrap,provision,check "$machine" &&
+        vagrant reload "$machine" &&
+        WACO_VM_REBOOTED=yes vagrant provision --provision-with check "$machine"
+} 2>&1 | tee "$log" || status=$?
+
+VBoxManage controlvm "waco-$machine" screenshotpng "$out/$machine-$stamp.png" || true
+
+if [ -z "$keep" ]; then
+    vagrant destroy -f "$machine"
+fi
+echo "run: $machine $([ $status -eq 0 ] && echo passed || echo FAILED); log $log"
+exit $status

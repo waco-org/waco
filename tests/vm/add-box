@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# add-box - add the box of a machine in boxes.yml to Vagrant, unless it's there.
+#
+# Usage: tests/vm/add-box MACHINE
+#
+# Vagrant boxes are added with their SHA-256 from boxes.yml. Cloud image OVAs
+# are downloaded to .cache/, checked against it, and repackaged as a Vagrant
+# box: the OVF renamed box.ovf, its manifest dropped (it names the old file),
+# and a metadata.json for the virtualbox provider.
+
+set -euo pipefail
+
+here=$(cd "$(dirname "$0")" && pwd)
+machine=${1:?usage: add-box MACHINE}
+
+read -r box format url sha256 < <(python3 -I - "$here/boxes.yml" "$machine" <<'PY'
+import sys, yaml
+boxes = yaml.safe_load(open(sys.argv[1]))
+if sys.argv[2] not in boxes:
+    sys.exit(f"add-box: no machine {sys.argv[2]} in boxes.yml; there are: {', '.join(boxes)}")
+b = boxes[sys.argv[2]]
+print(b["box"], b["format"], b["url"], b["sha256"])
+PY
+)
+
+if vagrant box list --machine-readable | grep -q ",box-name,$box\$"; then
+    echo "add-box: $box is already there"
+    exit 0
+fi
+
+case $format in
+    vagrant)
+        vagrant box add --name "$box" --checksum-type sha256 --checksum "$sha256" "$url"
+        ;;
+    ova)
+        cache=$here/.cache
+        mkdir -p "$cache"
+        ova=$cache/$(basename "$url")
+        curl -fL -C - -o "$ova" "$url"
+        echo "$sha256  $ova" | sha256sum -c -
+        work=$(mktemp -d "$cache/box.XXXXXX")
+        trap 'rm -rf "$work"' EXIT
+        tar -xf "$ova" -C "$work"
+        rm -f "$work"/*.mf
+        mv "$work"/*.ovf "$work/box.ovf"
+        echo '{"provider": "virtualbox"}' > "$work/metadata.json"
+        tar -cf "$work.box" -C "$work" .
+        vagrant box add --name "$box" "$work.box"
+        rm -f "$work.box"
+        ;;
+    *)
+        echo "add-box: unknown format $format" >&2
+        exit 1
+        ;;
+esac

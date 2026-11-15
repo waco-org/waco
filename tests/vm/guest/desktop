@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# desktop - install the distro's GNOME workstation, so that the run looks like
+# a desktop install. Waco itself doesn't install a desktop. Runs as root.
+
+set -euo pipefail
+
+# shellcheck source=/dev/null
+. /etc/os-release
+case $ID in
+    ubuntu)
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -qq
+        apt-get install -y -qq ubuntu-desktop-minimal >/dev/null
+        ;;
+    *)
+        # "Workstation" where there is one, else "Server with GUI". Both dnf 4
+        # and dnf 5 install an environment as "@id", but list environments
+        # differently (dnf 5 has no "environment list --hidden", which once
+        # left Fedora 45 without a desktop), so each is just tried in turn.
+        installed=
+        for env in workstation-product-environment graphical-server-environment; do
+            if dnf install -y -q "@$env"; then
+                installed=$env
+                break
+            fi
+        done
+        if [ -z "$installed" ]; then
+            echo "desktop: no GNOME environment could be installed" >&2
+            exit 1
+        fi
+        ;;
+esac
+systemctl set-default graphical.target
+systemctl isolate graphical.target

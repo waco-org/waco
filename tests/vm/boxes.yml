@@ -1,0 +1,48 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Boxes for Waco's VM tier, one Vagrant machine each (see README.md).
+#
+#   box:       the name it gets in "vagrant box list"
+#   format:    "vagrant" (a Vagrant box) or "ova" (a cloud image OVA, turned
+#              into a box by add-box; cloud-init creates the vagrant user)
+#   url:       where it comes from, always an official image of the distro
+#   sha256:    taken from the distro's signed checksum file, whose signature
+#              was checked when the entry was added (README.md, "Boxes")
+#   checksums: that checksum file, for the next update
+#   exclude_apps: apps of the test settings that can't be installed on this
+#              distro yet, each with the reason
+
+rocky10:
+  box: waco/rocky-10.2-20260525
+  format: vagrant
+  url: https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-Vagrant-Vbox-10.2-20260525.0.x86_64.vagrant.virtualbox.box
+  sha256: 5bd6cb282523eece1923d23e3c22dd7cb875b8d9df72c395d77a8d9e48f2bbc9
+  checksums: https://dl.rockylinux.org/pub/rocky/10/images/x86_64/CHECKSUM
+
+fedora44:
+  box: waco/fedora-44-1.7
+  format: vagrant
+  url: https://dl.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-VirtualBox-44-1.7.x86_64.vagrant.virtualbox.box
+  sha256: 7fb67d4224541a548f4d9622695b245f007a5bdfe608e291860da0d8597ec4b1
+  checksums: https://dl.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM
+
+fedora45:
+  box: waco/fedora-45-1.4
+  format: vagrant
+  url: https://dl.fedoraproject.org/pub/fedora/linux/releases/45/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-VirtualBox-45-1.4.x86_64.vagrant.virtualbox.box
+  sha256: 19635c83a2b4f78b9cc04ac57aee9677f96ea5cb4f88938b9374b82d92c0bfa8
+  checksums: https://dl.fedoraproject.org/pub/fedora/linux/releases/45/Cloud/x86_64/images/Fedora-Cloud-45-1.4-x86_64-CHECKSUM
+  exclude_apps:
+    # No fedora/45 repositories from HashiCorp and Oracle yet (2026-11-15)
+    - packer
+    - vagrant
+    - virtualbox
+
+ubuntu2604:
+  box: waco/ubuntu-26.04-20261108
+  format: ova
+  url: https://cloud-images.ubuntu.com/releases/resolute/release-20261108/ubuntu-26.04-server-cloudimg-amd64.ova
+  sha256: 111fef0898510f6d0bcfc1020d80c9605f9cc59ff5130d72187a2f6b4da6caa4
+  checksums: https://cloud-images.ubuntu.com/releases/resolute/release-20261108/SHA256SUMS

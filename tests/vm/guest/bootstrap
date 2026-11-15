@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# bootstrap - set up the settings clone as an admin would and run
+# waco-bootstrap. Runs as vagrant, the VM's admin (passwordless sudo).
+#
+# From /tmp/waco-upload (see ../run): waco-bootstrap.bundle, the settings
+# clone under test, and overlay/, the test settings, copied over the clone and
+# committed, since waco only applies committed state.
+
+set -euo pipefail
+
+up=/tmp/waco-upload
+if ! command -v git >/dev/null; then
+    if command -v apt-get >/dev/null; then
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git >/dev/null
+    else
+        sudo dnf install -y -q git
+    fi
+fi
+
+rm -rf ~/.waco
+git clone -q "$up/waco-bootstrap.bundle" ~/.waco
+cd ~/.waco
+git remote remove origin
+git switch -q -C vm-test
+cp -R "$up/overlay/." .
+git add -A
+git -c user.name=vm-test -c user.email=vm-test@example.org commit -qm "VM test settings" || true
+git log --oneline -2
+
+./waco-bootstrap
