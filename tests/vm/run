@@ -3,9 +3,9 @@
 # Workstation as Code
 # Copyright Nicola Musatti 2026.
 
-# run - a VM test run: add the box, bring the machine up with every
-# provisioner (disk, desktop, upload, bootstrap, provision, check), take a
-# screenshot, destroy the VM.
+# run - a VM test run: add the box; bring the machine up (disk, update,
+# desktop) and reboot; run Waco (upload, bootstrap, provision) and check; reboot
+# and check again; take a screenshot; destroy the VM.
 #
 # Usage: tests/vm/run [-k] MACHINE
 #
@@ -57,7 +57,14 @@ export VAGRANT_EXPERIMENTAL=cloud_init,disks
 status=0
 {
     echo "== $machine: waco $(git -C "$coll" rev-parse --short HEAD), waco-bootstrap $(git -C "$bootstrap" rev-parse --short HEAD)"
-    vagrant up --provision "$machine"
+    # Up to date and rebooted before Waco runs, as after an install; then the
+    # Waco run and the checks; then a reboot and the checks again, for what
+    # must survive one (persistent journal, modules built at boot, services).
+    vagrant up --provision-with disk,update,desktop "$machine" &&
+        vagrant reload "$machine" &&
+        vagrant provision --provision-with upload,bootstrap,provision,check "$machine" &&
+        vagrant reload "$machine" &&
+        WACO_VM_REBOOTED=yes vagrant provision --provision-with check "$machine"
 } 2>&1 | tee "$log" || status=$?
 
 VBoxManage controlvm "waco-$machine" screenshotpng "$out/$machine-$stamp.png" || true

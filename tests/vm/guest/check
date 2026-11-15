@@ -4,7 +4,8 @@
 # Copyright Nicola Musatti 2026.
 
 # check - after a run, check what the container scenarios can't: services
-# really running, kernel modules, SELinux/AppArmor, the firewall. Runs as root.
+# really running, kernel modules, SELinux/AppArmor, the firewall. Runs as root,
+# after the Waco run and again after a reboot (WACO_VM_REBOOTED=yes).
 # Reports every check, then fails if any did.
 
 set -uo pipefail
@@ -29,6 +30,11 @@ fi
 
 check "waco account, password locked" sh -c "getent shadow waco | cut -d: -f2 | grep -q '^[!*]'"
 check "journal persistent" test -d /var/log/journal
+if [ "${WACO_VM_REBOOTED:-no}" = yes ]; then
+    # After the final reboot: the journal kept the boot of the Waco run
+    # shellcheck disable=SC2016 # expanded by the inner sh
+    check "journal kept the previous boot" sh -c '[ "$(journalctl --list-boots -q | wc -l)" -ge 2 ]'
+fi
 check "Docker daemon active" systemctl is-active docker
 check "docker info as vagrant" sudo -u vagrant docker info
 check "CUPS active" systemctl is-active cups

@@ -27,13 +27,17 @@ A run tests the **committed** state of this checkout and of the `waco-bootstrap`
 checkout next to it (or `$WACO_BOOTSTRAP`). Each VM gets:
 
 1. `disk`: the root file system grown to the 40 GB disk;
-2. `desktop`: the distro's GNOME workstation (`WACO_VM_DESKTOP=no` skips it);
-3. `upload`: bundles of both repositories and the test settings;
-4. `bootstrap`: the settings clone in `~vagrant/.waco` with the test settings
+2. `update`: the system brought up to date, as an admin does after installing;
+3. `desktop`: the distro's GNOME workstation (`WACO_VM_DESKTOP=no` skips it);
+4. a reboot, so that Waco runs on the newest kernel;
+5. `upload`: bundles of both repositories and the test settings;
+6. `bootstrap`: the settings clone in `~vagrant/.waco` with the test settings
    ([overlay/](overlay/)) committed, then `waco-bootstrap`;
-5. `provision`: `waco-provision` with the collection under test;
-6. `check`: [guest/check](guest/check), which reports every check and fails if
-   any did.
+7. `provision`: `waco-provision` with the collection under test;
+8. `check`: [guest/check](guest/check), which reports every check and fails if
+   any did;
+9. a reboot and `check` again, for what must survive one: the persistent journal,
+   VirtualBox's modules, services enabled at boot.
 
 The log and a screenshot land in `tests/vm/out/`.
 

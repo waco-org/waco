@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# update - bring the system up to date, as an admin does after installing;
+# run reboots afterwards, so that Waco runs on the newest kernel. Runs as root.
+
+set -euo pipefail
+
+if command -v apt-get >/dev/null; then
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
+    apt-get full-upgrade -y -qq >/dev/null
+else
+    dnf upgrade -y -q
+fi
