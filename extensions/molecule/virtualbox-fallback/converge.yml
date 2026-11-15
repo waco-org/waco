@@ -1,0 +1,20 @@
+---
+# The role is given a key that isn't Oracle's, as if Oracle had rotated its
+# key: the install must fail with it, then succeed with the "downloaded" one.
+# The download comes from a file:// URL holding Oracle's key, so the test
+# doesn't depend on Oracle's server, which often answers 410 Gone (the reason
+# the key is shipped); scripts/check-repo-keys watches the real URL.
+- name: Converge
+  hosts: all
+  pre_tasks:
+    - name: Put Oracle's key where the fallback will fetch it
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../../roles/virtualbox/files/oracle_vbox_2016.asc"
+        dest: /var/tmp/oracle_vbox_2016.asc
+        mode: "0644"
+      become: true
+  roles:
+    - role: waco_org.waco.virtualbox
+      vars:
+        virtualbox_key_src: "{{ playbook_dir }}/wrong-key.asc"
+        virtualbox_key_url: file:///var/tmp/oracle_vbox_2016.asc

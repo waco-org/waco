@@ -1,0 +1,26 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+name: repo-keys
+
+# Weekly check that the repository signing keys shipped with the roles still
+# verify their repositories (scripts/check-repo-keys). Only VirtualBox's key is
+# shipped. No containers: it downloads repository metadata and runs gpgv.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - roles/virtualbox/files/**
+      - scripts/check-repo-keys
+      - .github/workflows/repo-keys.yml
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: scripts/check-repo-keys

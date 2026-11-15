@@ -1,0 +1,26 @@
+---
+# Workstation as Code
+# Copyright Nicola Musatti 2026.
+
+# Installs VirtualBox from the repository added by main.yml. With
+# virtualbox_refresh, the repository's cached metadata is dropped first, so
+# it is verified again with the key now installed.
+
+- name: Drop the cached repository metadata (Red Hat family)
+  ansible.builtin.command: dnf clean all --repo virtualbox
+  become: true
+  changed_when: true
+  when: ansible_facts['os_family'] == 'RedHat' and virtualbox_refresh | bool
+
+- name: Install VirtualBox (Red Hat family)
+  ansible.builtin.dnf:
+    name: "{{ virtualbox_rpm_package }}"
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Install VirtualBox (Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ virtualbox_deb_package }}"
+    update_cache: "{{ virtualbox_refresh | bool }}"
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'

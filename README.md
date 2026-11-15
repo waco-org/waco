@@ -101,6 +101,11 @@ After changing the catalog, run the `apps` scenario and then `scripts/apps-table
 regenerates `docs/apps.md` from the catalog and marks each source that the logs in
 `.cache/molecule-logs` show as tested.
 
+The `virtualbox` role ships Oracle's signing key and falls back to downloading it, with a
+warning, when Oracle's repository no longer verifies with it. Every Monday the `repo-keys`
+workflow runs `scripts/check-repo-keys`, which fails in that case too; replace
+`roles/virtualbox/files/oracle_vbox_2016.asc` then.
+
 ## License
 
 GPLv3 or later.

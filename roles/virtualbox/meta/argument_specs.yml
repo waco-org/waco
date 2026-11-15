@@ -16,3 +16,15 @@ argument_specs:
         description:
           - A specific package version within the release, e.g. to stay on an earlier minor
             release. Empty for the newest.
+      virtualbox_key_src:
+        type: str
+        default: oracle_vbox_2016.asc
+        description:
+          - The signing key tried first, a file of the role or a path. Change it only to test
+            the fallback to O(virtualbox_key_url).
+      virtualbox_key_url:
+        type: str
+        default: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+        description:
+          - Oracle's signing key, downloaded only if the repository doesn't verify with
+            O(virtualbox_key_src).
