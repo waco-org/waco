@@ -20,6 +20,9 @@ check() { local what=$1; shift; if "$@" >/dev/null 2>&1; then ok "$what"; else b
 state=$(systemctl is-system-running)
 if [ "$state" = running ]; then ok "system running"; else bad "system $state:"; systemctl --failed --no-legend; fi
 check "graphical target is the default" test "$(systemctl get-default)" = graphical.target
+# The desktop step sets the default target itself: the display manager shows
+# that a desktop really is there.
+check "display manager running" systemctl is-active display-manager
 
 if [ "$ID" = ubuntu ]; then
     check "AppArmor enabled" aa-status --enabled
