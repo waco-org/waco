@@ -18,8 +18,15 @@ case $ID in
         ;;
     *)
         # Fedora and EL10 call it "Workstation"; EL9 only has "Server with GUI".
-        dnf install -y -q @^workstation-product-environment ||
-            dnf install -y -q @^graphical-server-environment
+        # dnf 4 (EL) installs environments with "group install", dnf 5
+        # (Fedora) with "install @id".
+        for env in workstation-product-environment graphical-server-environment; do
+            if dnf environment list --hidden 2>/dev/null | grep -q "($env)" ||
+                dnf group list --hidden -v 2>/dev/null | grep -q "($env)"; then
+                dnf group install -y -q "$env" || dnf install -y -q "@$env"
+                break
+            fi
+        done
         ;;
 esac
 systemctl set-default graphical.target
