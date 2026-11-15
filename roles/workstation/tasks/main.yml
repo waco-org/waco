@@ -41,10 +41,10 @@
   ansible.builtin.include_role:
     name: waco_org.waco.apps
   vars:
-    apps_list: "{{ waco_apps }}"
+    apps_list: "{{ waco_apps | difference(waco_apps_exclude) }}"
     apps_catalog_extra: "{{ waco_apps_catalog_extra }}"
     apps_allow_missing: "{{ waco_apps_allow_missing }}"
-  when: waco_apps | length > 0
+  when: waco_apps | difference(waco_apps_exclude) | length > 0
 
 - name: Set up the print queues
   ansible.builtin.include_role:

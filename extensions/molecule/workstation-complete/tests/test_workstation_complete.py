@@ -52,6 +52,11 @@ def test_components(host):
     assert host.file('/usr/bin/code').exists
 
 
+# simple-scan is in waco_apps but also in waco_apps_exclude
+def test_excluded_app(host):
+    assert not host.package('simple-scan').is_installed
+
+
 # Java 21 is the default although 25 is newer, and stays so after Maven pulls
 # in its own JDK; Maven runs on JAVA_HOME.
 def test_java_default(host):

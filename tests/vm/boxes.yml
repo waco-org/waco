@@ -35,9 +35,9 @@ fedora45:
   sha256: 19635c83a2b4f78b9cc04ac57aee9677f96ea5cb4f88938b9374b82d92c0bfa8
   checksums: https://dl.fedoraproject.org/pub/fedora/linux/releases/45/Cloud/x86_64/images/Fedora-Cloud-45-1.4-x86_64-CHECKSUM
   exclude_apps:
-    # No fedora/45 repositories from HashiCorp and Oracle yet (2026-11-15)
-    - packer
-    - vagrant
+    # Oracle has no fedora/45 repository yet, and its fedora/44 packages need
+    # libvpx.so.9, which Fedora 45 doesn't have (2026-11-15). HashiCorp's
+    # fedora/44 repository is used instead of the missing fedora/45 one.
     - virtualbox
 
 ubuntu2604:

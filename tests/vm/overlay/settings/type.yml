@@ -22,7 +22,8 @@ waco_sudoers:
       user ALL=(root) NOPASSWD: /usr/bin/true
 
 # exclude_apps in boxes.yml: apps this distro can't install yet
-waco_apps: "{{ ['grsync', 'packer', 'vagrant', 'virtualbox', 'vscode'] | difference(waco_vm_exclude_apps | default([])) }}"
+waco_apps: [grsync, packer, vagrant, virtualbox, vscode]
+waco_apps_exclude: "{{ waco_vm_exclude_apps | default([]) }}"
 waco_packages:
   - "{{ (ansible_facts['os_family'] == 'RedHat') | ternary('vim-X11', 'vim-gui-common') }}"
 waco_flatpak_apps:

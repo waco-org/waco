@@ -48,6 +48,14 @@ argument_specs:
         elements: str
         default: []
         description: Apps to install system-wide, by name in the app catalog (role apps).
+      waco_apps_exclude:
+        type: list
+        elements: str
+        default: []
+        description:
+          - Apps of O(waco_apps) not to install here, e.g. one with no source yet on a new
+            distro release. Settings lists only add to each other, so this is how a machine
+            drops an app of its type.
       waco_apps_catalog_extra:
         type: dict
         default: {}
