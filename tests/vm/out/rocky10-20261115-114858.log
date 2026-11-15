@@ -1,0 +1,74 @@
+== rocky10: waco c24efd4, waco-bootstrap 85adf54
+==> vagrant: You have requested to enable the experimental flag with the following features:
+==> vagrant: 
+==> vagrant: Features:  cloud_init, disks
+==> vagrant: 
+==> vagrant: Please use with caution, as some of the features may not be fully
+==> vagrant: functional yet.
+Bringing machine 'rocky10' up with 'virtualbox' provider...
+==> rocky10: Importing base box 'waco/rocky-10.2-20260525'...
+[KProgress: 30%[KProgress: 70%[KProgress: 90%[K==> rocky10: Matching MAC address for NAT networking...
+==> rocky10: Setting the name of the VM: waco-rocky10
+==> rocky10: Clearing any previously set network interfaces...
+==> rocky10: Preparing network interfaces based on configuration...
+    rocky10: Adapter 1: nat
+==> rocky10: Forwarding ports...
+    rocky10: 22 (guest) => 2222 (host) (adapter 1)
+==> rocky10: Configuring storage mediums...
+    rocky10: Disk 'vagrant_primary' needs to be resized. Resizing disk...
+==> rocky10: Running 'pre-boot' VM customizations...
+==> rocky10: Booting VM...
+==> rocky10: Waiting for machine to boot. This may take a few minutes...
+    rocky10: SSH address: 127.0.0.1:2222
+    rocky10: SSH username: vagrant
+    rocky10: SSH auth method: private key
+    rocky10: 
+    rocky10: Vagrant insecure key detected. Vagrant will automatically replace
+    rocky10: this with a newly generated keypair for better security.
+    rocky10: 
+    rocky10: Inserting generated public key within guest...
+    rocky10: Removing insecure key from the guest if it's present...
+    rocky10: Key inserted! Disconnecting and reconnecting using new SSH key...
+==> rocky10: Machine booted and ready!
+==> rocky10: Checking for guest additions in VM...
+    rocky10: No guest additions were detected on the base box for this VM! Guest
+    rocky10: additions are required for forwarded ports, shared folders, host only
+    rocky10: networking, and more. If SSH fails on this machine, please install
+    rocky10: the guest additions and repackage the box to continue.
+    rocky10: 
+    rocky10: This is not an error message; everything may continue to work properly,
+    rocky10: in which case you may ignore this message.
+==> rocky10: Setting hostname...
+==> rocky10: Running provisioner: disk (shell)...
+    rocky10: Running: /tmp/vagrant-shell20261115-18122-734q31
+    rocky10: Importing GPG key 0x6FEDFC85:
+    rocky10:  Userid     : "Release Engineering (Rocky Linux 10) <releng@rockylinux.org>"
+    rocky10:  Fingerprint: FC22 6859 C086 0BF0 DDB9 5B08 5B10 6C73 6FED FC85
+    rocky10:  From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-10
+    rocky10: CHANGED: partition=4 start=2463744 old: size=18507743 end=20971486 new: size=81422303 end=83886046
+    rocky10: meta-data=/dev/sda4              isize=512    agcount=4, agsize=578367 blks
+    rocky10:          =                       sectsz=512   attr=2, projid32bit=1
+    rocky10:          =                       crc=1        finobt=1, sparse=1, rmapbt=1
+    rocky10:          =                       reflink=1    bigtime=1 inobtcount=1 nrext64=1
+    rocky10:          =                       exchange=0   metadir=0
+    rocky10: data     =                       bsize=4096   blocks=2313467, imaxpct=25
+    rocky10:          =                       sunit=0      swidth=0 blks
+    rocky10: naming   =version 2              bsize=4096   ascii-ci=0, ftype=1, parent=0
+    rocky10: log      =internal log           bsize=4096   blocks=115425, version=2
+    rocky10:          =                       sectsz=512   sunit=0 blks, lazy-count=1
+    rocky10: realtime =none                   extsz=4096   blocks=0, rtextents=0
+    rocky10:          =                       rgcount=0    rgsize=0 extents
+    rocky10:          =                       zoned=0      start=0 reserved=0
+    rocky10: data blocks changed from 2313467 to 10177787
+    rocky10: Filesystem      Size  Used Avail Use% Mounted on
+    rocky10: /dev/sda4        39G  3.7G   35G  10% /
+==> rocky10: Running provisioner: desktop (shell)...
+    rocky10: Running: /tmp/vagrant-shell20261115-18122-gk3s4x
+    rocky10: Module or Group '^workstation-product-environment' is not available.
+    rocky10: Error: Nothing to do.
+    rocky10: Module or Group '^graphical-server-environment' is not available.
+    rocky10: Error: Nothing to do.
+The SSH command responded with a non-zero exit status. Vagrant
+assumes that this means the command failed. The output for this command
+should be in the log above. Please read the output to determine what
+went wrong.

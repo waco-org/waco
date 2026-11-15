@@ -6,3 +6,8 @@ virtualbox_rpm_distro: "{{ (ansible_facts['distribution'] == 'Fedora') | ternary
 virtualbox_rpm_package: "VirtualBox-{{ virtualbox_release }}{{ (virtualbox_package_version | length > 0) | ternary('-' + virtualbox_package_version, '') }}"
 virtualbox_deb_package: "virtualbox-{{ virtualbox_release }}{{ (virtualbox_package_version | length > 0) | ternary('=' + virtualbox_package_version, '') }}"
 virtualbox_key_path: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('/etc/apt/keyrings/virtualbox.asc', '/etc/pki/rpm-gpg/RPM-GPG-KEY-oracle-vbox-2016') }}"
+# In a container the kernel is the host's: no modules to build or load
+virtualbox_in_container: "{{ ansible_facts['virtualization_role'] | default('') == 'guest' and ansible_facts['virtualization_type'] | default('') in ['docker', 'podman', 'container', 'containerd', 'lxc'] }}"
+# Kernel headers, for building the modules
+virtualbox_headers_running: "{{ (ansible_facts['os_family'] == 'RedHat') | ternary('kernel-devel-', 'linux-headers-') }}{{ ansible_facts['kernel'] }}"
+virtualbox_headers_newest: "{{ (ansible_facts['os_family'] == 'RedHat') | ternary('kernel-devel', 'linux-headers-generic') }}"

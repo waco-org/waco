@@ -74,3 +74,6 @@
       ansible.builtin.include_tasks: install.yml
       vars:
         virtualbox_refresh: true
+
+- name: Build VirtualBox's kernel modules
+  ansible.builtin.include_tasks: modules.yml
