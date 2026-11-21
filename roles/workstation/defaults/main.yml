@@ -24,6 +24,11 @@ waco_printing_queues_absent: []
 # Apps to install system-wide, by name in the app catalog (roles/apps/vars/catalog.yml)
 waco_apps: []
 
+# Apps of waco_apps not to install here. Settings lists only add to each
+# other (machine.yml to type.yml), so this is how a machine drops an app of its
+# type, e.g. one with no source yet on a new distro release.
+waco_apps_exclude: []
+
 # Catalog entries to add or override, merged recursively over the shipped catalog
 waco_apps_catalog_extra: {}
 

@@ -32,6 +32,8 @@ waco_users:
 Apps are named in the app catalog, `roles/apps/vars/catalog.yml`, which says where each one
 comes from on each platform: a distro package, a flatpak, a snap or a per-tool role.
 `waco_packages` and `waco_flatpak_apps` remain for anything not in the catalog.
+`waco_apps_exclude` drops apps of `waco_apps` on a host, e.g. where an app has no source yet on
+a new distro release.
 [docs/apps.md](docs/apps.md) shows the result for each distribution.
 
 Waco installs system-wide, for every user of the machine. Apart from creating the accounts,

@@ -2,11 +2,39 @@
 # Workstation as Code
 # Copyright Nicola Musatti 2021 - 2026.
 
+# HashiCorp publishes the repository for a new Fedora release weeks after it
+# comes out. Until then the previous release's repository is used: its packages
+# are static Go binaries.
+- name: Check that the HashiCorp repository has this Fedora release
+  ansible.builtin.uri:
+    url: "{{ hashicorp_rpm_url }}/{{ ansible_facts['distribution_major_version'] }}/{{ ansible_facts['architecture'] }}/stable/repodata/repomd.xml"
+    method: HEAD
+    status_code: [200, 404]
+  register: hashicorp_repo_probe
+  when: ansible_facts['distribution'] == 'Fedora'
+
+- name: Use the previous Fedora release's repository
+  ansible.builtin.set_fact:
+    hashicorp_rpm_release: "{{ ansible_facts['distribution_major_version'] | int - 1 }}"
+  when:
+    - ansible_facts['distribution'] == 'Fedora'
+    - hashicorp_repo_probe.status == 404
+
+- name: Warn about the previous release's repository
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: HashiCorp has no repository for Fedora
+      {{ ansible_facts['distribution_major_version'] }} yet; using Fedora
+      {{ hashicorp_rpm_release }}'s.
+  when:
+    - ansible_facts['distribution'] == 'Fedora'
+    - hashicorp_repo_probe.status == 404
+
 - name: Add the HashiCorp repository (Red Hat family)
   ansible.builtin.yum_repository:
     name: hashicorp
     description: HashiCorp Stable
-    baseurl: "https://rpm.releases.hashicorp.com/{{ hashicorp_rpm_distro }}/{{ ansible_facts['distribution_major_version'] }}/$basearch/stable"
+    baseurl: "{{ hashicorp_rpm_url }}/{{ hashicorp_rpm_release | default(ansible_facts['distribution_major_version']) }}/$basearch/stable"
     gpgkey: https://rpm.releases.hashicorp.com/gpg
     gpgcheck: true
   become: true

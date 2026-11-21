@@ -3,3 +3,4 @@
 # Copyright Nicola Musatti 2021 - 2026.
 
 hashicorp_rpm_distro: "{{ (ansible_facts['distribution'] == 'Fedora') | ternary('fedora', 'RHEL') }}"
+hashicorp_rpm_url: "https://rpm.releases.hashicorp.com/{{ hashicorp_rpm_distro }}"
