@@ -42,6 +42,9 @@ def test_launcher(host):
     f = host.file(f'/usr/share/applications/waco-eclipse-{r}.desktop')
     assert f.contains(f'^Name=Eclipse {r}$')
     assert f.contains(f'^Exec=/opt/eclipse-{r}/eclipse$')
+    icon = f.content_string.split('\nIcon=')[1].split('\n')[0]
+    assert re.fullmatch(rf'/opt/eclipse-{r}/plugins/org\.eclipse\.platform_[^/]+/eclipse256\.png', icon)
+    assert host.file(icon).is_file
 
 
 def test_update_check_off(host):

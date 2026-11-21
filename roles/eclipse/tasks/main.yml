@@ -135,6 +135,15 @@
       become: true
       when: eclipse_plugins | length > 0 and eclipse_missing | length > 0
 
+    # The archive's icon.xpm doesn't show on Rocky 10, whose gdk-pixbuf has no
+    # XPM loader; the platform plugin carries PNGs.
+    - name: Find the platform plugin
+      ansible.builtin.find:
+        paths: "{{ eclipse_home }}/plugins"
+        patterns: org.eclipse.platform_*
+        file_type: directory
+      register: eclipse_platform
+
     - name: Add the launcher
       ansible.builtin.template:
         src: eclipse.desktop.j2
@@ -142,6 +151,8 @@
         owner: root
         group: root
         mode: "0644"
+      vars:
+        eclipse_icon: "{{ (eclipse_platform.files | map(attribute='path') | sort | last) ~ '/eclipse256.png' }}"
       become: true
 
     - name: Put eclipse on the PATH
