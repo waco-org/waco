@@ -4,13 +4,14 @@
 
 argument_specs:
   main:
-    short_description: Install the Eclipse IDE for Java Developers from eclipse.org's archives
+    short_description: Install an Eclipse IDE package from eclipse.org's archives
     description:
       - The release is unpacked to /opt/eclipse-<release>, owned by root, with a launcher named
         Eclipse <release> and /usr/local/bin/eclipse pointing to it. The archive is checked
         against the SHA-512 that eclipse.org publishes next to it.
       - Eclipse runs on its bundled JRE. Its update check is off, so the version changes only
         when eclipse_release does; by default, after each December release.
+      - Changing eclipse_package replaces the install of the same release, plugins included.
       - Installs that Waco did not make are left alone.
     options:
       eclipse_release:
@@ -20,6 +21,13 @@ argument_specs:
           - The release to install, as YYYY-MM (e.g. 2026-09).
           - latest means the newest December release, so the install changes once a year.
             Older releases may not work as well, since plugin sites move on.
+      eclipse_package:
+        type: str
+        default: java
+        choices: [java, jee]
+        description:
+          - The EPP package, as named in its archive. java is the Eclipse IDE for Java
+            Developers, jee the Eclipse IDE for Enterprise Java and Web Developers.
       eclipse_keep_previous:
         type: bool
         default: true

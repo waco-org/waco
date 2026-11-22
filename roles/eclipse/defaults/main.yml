@@ -6,6 +6,10 @@
 # December release, which changes once a year
 eclipse_release: latest
 
+# The EPP package: java (Eclipse IDE for Java Developers) or jee (Eclipse IDE for
+# Enterprise Java and Web Developers)
+eclipse_package: java
+
 # Keep the most recent of the other releases Waco installed, as a fallback;
 # false removes them all
 eclipse_keep_previous: true

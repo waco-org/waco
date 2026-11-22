@@ -40,7 +40,9 @@
   with a launcher. `eclipse_release` defaults to `latest`, the newest December release, so the
   install changes once a year; the previous release stays as a fallback unless
   `eclipse_keep_previous` is false. `eclipse_plugins` are installed with the p2 director.
-  The update check is off.
+  The update check is off. `eclipse_package` picks the EPP package: `java` (the default) or
+  `jee`, the Eclipse IDE for Enterprise Java and Web Developers; changing it replaces the
+  install of the same release.
 - New `system` role, always applied by `workstation`: mDNS through firewalld's default zone
   (`waco_mdns_firewall`), so that printers and scanners are discovered on the Red Hat family; a
   persistent journal (`waco_journal_persistent`, `waco_journal_max_use`), as Fedora and Ubuntu

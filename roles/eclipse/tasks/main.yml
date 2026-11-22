@@ -23,12 +23,12 @@
 
 - name: Show the release
   ansible.builtin.debug:
-    msg: "Eclipse {{ eclipse_version }} ({{ eclipse_release }})"
+    msg: "Eclipse {{ eclipse_version }} ({{ eclipse_release }}), package {{ eclipse_package }}"
 
 - name: Set the install's paths
   ansible.builtin.set_fact:
     eclipse_home: /opt/eclipse-{{ eclipse_version }}
-    eclipse_archive: eclipse-java-{{ eclipse_version }}-R-linux-gtk-{{ eclipse_arch }}.tar.gz
+    eclipse_archive: eclipse-{{ eclipse_package }}-{{ eclipse_version }}-R-linux-gtk-{{ eclipse_arch }}.tar.gz
 
 # The director needs a home directory, where it leaves files of its own.
 - name: Make a temporary directory
@@ -45,8 +45,26 @@
         path: "{{ eclipse_home }}/{{ eclipse_marker }}"
       register: eclipse_installed
 
+    # The marker holds the release and the package; one with the release
+    # alone predates eclipse_package and means java.
+    - name: Read which package is installed
+      ansible.builtin.slurp:
+        path: "{{ eclipse_home }}/{{ eclipse_marker }}"
+      register: eclipse_marker_content
+      when: eclipse_installed.stat.exists
+
+    - name: Remove the install of another package
+      ansible.builtin.file:
+        path: "{{ eclipse_home }}"
+        state: absent
+      become: true
+      when: eclipse_installed.stat.exists and eclipse_installed_package != eclipse_package
+      vars:
+        eclipse_installed_package: "{{ ((eclipse_marker_content.content | b64decode).split() + ['java'])[1] }}"
+      register: eclipse_removed
+
     - name: Install the release
-      when: not eclipse_installed.stat.exists
+      when: not eclipse_installed.stat.exists or eclipse_removed is changed
       block:
         - name: Install the tools to unpack it
           ansible.builtin.package:
@@ -86,7 +104,7 @@
 
         - name: Mark the install as Waco's
           ansible.builtin.copy:
-            content: "{{ eclipse_version }}\n"
+            content: "{{ eclipse_version }} {{ eclipse_package }}\n"
             dest: "{{ eclipse_home }}/{{ eclipse_marker }}"
             owner: root
             group: root
@@ -96,7 +114,7 @@
     - name: Find the package's product plugin
       ansible.builtin.find:
         paths: "{{ eclipse_home }}/plugins"
-        patterns: org.eclipse.epp.package.java_*
+        patterns: org.eclipse.epp.package.{{ eclipse_package }}_*
         file_type: directory
       register: eclipse_product
 

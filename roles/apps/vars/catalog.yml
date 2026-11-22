@@ -40,7 +40,7 @@ apps_catalog:
         check: {command: dropbox}
 
   eclipse:
-    description: Eclipse IDE for Java Developers
+    description: Eclipse IDE
     check: {command: eclipse}
     sources:
       default:

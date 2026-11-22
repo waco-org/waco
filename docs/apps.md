@@ -8,7 +8,7 @@ scenario passed on that distribution with that source.
 | App | Description | rockylinux10 | rockylinux9 | fedora44 | fedora43 | ubuntu2604 | ubuntu2404 | ubuntu2204 | centos-stream10 | centos-stream9 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `dropbox` | Dropbox client | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ | package `nautilus-dropbox` ✓ | package `nautilus-dropbox` ✓ | package `nautilus-dropbox` ✓ | flatpak `com.dropbox.Client` ✓ | flatpak `com.dropbox.Client` ✓ |
-| `eclipse` | Eclipse IDE for Java Developers | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ |
+| `eclipse` | Eclipse IDE | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ | role `eclipse` ✓ |
 | `gimp` | GIMP, image editor | flatpak `org.gimp.GIMP` ✓ | package `gimp` ✓ | package `gimp` ✓ | package `gimp` ✓ | package `gimp` ✓ | snap `gimp` ✓ | snap `gimp` ✓ | flatpak `org.gimp.GIMP` ✓ | package `gimp` ✓ |
 | `go` | Go toolchain | package `golang` ✓ | package `golang` ✓ | package `golang` ✓ | package `golang` ✓ | package `golang-go` ✓ | snap `go` ✓ | snap `go` ✓ | package `golang` ✓ | package `golang` ✓ |
 | `grsync` | GUI for rsync | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ | package `grsync` ✓ |
