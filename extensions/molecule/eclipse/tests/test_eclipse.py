@@ -42,6 +42,7 @@ def test_launcher(host):
     f = host.file(f'/usr/share/applications/waco-eclipse-{r}.desktop')
     assert f.contains(f'^Name=Eclipse {r}$')
     assert f.contains(f'^Exec=/opt/eclipse-{r}/eclipse$')
+    assert f.contains('^Comment=Eclipse IDE for Enterprise Java and Web Developers$')
     icon = f.content_string.split('\nIcon=')[1].split('\n')[0]
     assert re.fullmatch(rf'/opt/eclipse-{r}/plugins/org\.eclipse\.platform_[^/]+/eclipse256\.png', icon)
     assert host.file(icon).is_file
@@ -49,11 +50,20 @@ def test_launcher(host):
 
 def test_update_check_off(host):
     ini = host.check_output(
-        f'ls /opt/eclipse-{release(host)}/plugins/org.eclipse.epp.package.java_*/plugin_customization.ini')
+        f'ls /opt/eclipse-{release(host)}/plugins/org.eclipse.epp.package.jee_*/plugin_customization.ini')
     out = host.check_output(f'grep "^org.eclipse.equinox.p2.ui.sdk.scheduler/enabled=" {ini}')
     assert out == 'org.eclipse.equinox.p2.ui.sdk.scheduler/enabled=false'
 
 
+def test_package_switch(host):
+    r = release(host)
+    first = json.loads(host.file('/var/tmp/waco-eclipse-first.json').content_string)
+    assert first['marker'] == f'{r} java\n'
+    assert host.file(f'/opt/eclipse-{r}/.waco-eclipse').content_string.strip() == f'{r} jee'
+    assert not host.run(f'ls -d /opt/eclipse-{r}/plugins/org.eclipse.epp.package.java_*').succeeded
+
+
+# Installed on the java package, so it must come back after the switch to jee
 def test_plugin(host):
     with host.sudo():
         out = host.check_output(
@@ -64,7 +74,7 @@ def test_plugin(host):
 
 def test_previous_releases(host):
     first = json.loads(host.file('/var/tmp/waco-eclipse-first.json').content_string)
-    assert first == {'2020-12': False, '2021-12': True}
+    assert {r: first[r] for r in ('2020-12', '2021-12')} == {'2020-12': False, '2021-12': True}
     for r in ('2020-12', '2021-12'):
         assert not host.file(f'/opt/eclipse-{r}').exists
         assert not host.file(f'/usr/share/applications/waco-eclipse-{r}.desktop').exists

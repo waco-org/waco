@@ -1,8 +1,10 @@
 ---
 # Installs the latest December release with one plugin, next to two fake Waco
-# installs and a hand-made one. The first run keeps the previous release, the
-# second removes it; what the first left is saved for the tests. The seeding
-# and the saving happen only once, so the idempotence run changes nothing.
+# installs and a hand-made one. The first run installs the java package and
+# keeps the previous release; the second switches to jee and removes the
+# previous release. What the first left is saved for the tests. The seeding,
+# the first run and the saving happen only once, so the idempotence run
+# changes nothing.
 - name: Converge
   hosts: all
   tasks:
@@ -38,6 +40,7 @@
     - name: Install Eclipse, keeping the previous release
       ansible.builtin.include_role:
         name: waco_org.waco.eclipse
+      when: not test_seeded.stat.exists
       vars:
         eclipse_plugins:
           - repository: https://de-jcup.github.io/update-site-eclipse-bash-editor/update-site/
@@ -52,16 +55,23 @@
           loop: [2020-12, 2021-12]
           register: test_left
 
+        - name: Read the first run's marker
+          ansible.builtin.slurp:
+            path: "{{ eclipse_home }}/.waco-eclipse"
+          register: test_marker
+
         - name: Save the result
           ansible.builtin.copy:
-            content: "{{ dict(test_left.results | map(attribute='item') | zip(test_left.results | map(attribute='stat.exists'))) | to_nice_json }}"
+            content: "{{ dict(test_left.results | map(attribute='item') | zip(test_left.results | map(attribute='stat.exists')))
+                         | combine({'marker': test_marker.content | b64decode}) | to_nice_json }}"
             dest: /var/tmp/waco-eclipse-first.json
             mode: "0644"
 
-    - name: Install Eclipse again, without the previous release
+    - name: Switch to the jee package, without the previous release
       ansible.builtin.include_role:
         name: waco_org.waco.eclipse
       vars:
+        eclipse_package: jee
         eclipse_keep_previous: false
         eclipse_plugins:
           - repository: https://de-jcup.github.io/update-site-eclipse-bash-editor/update-site/
